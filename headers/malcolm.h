@@ -8,11 +8,14 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define ETH_ADDR_LEN 6
+#define ETHERTYPE_ARP 0x0806
+
 /* Ethernet header */
 struct ethernet_hdr {
-	u_char ether_dmac[ETH_ADDR_LEN];		/* destination mac address */
-	u_char ether_smac[ETH_ADDR_LEN];		/* source mac address */
-	u_int16_t ether_type;				/* ethertype: arp, rarp, ip ... */
+	u_char ether_dmac[ETH_ADDR_LEN]; /* destination mac address */
+	u_char ether_smac[ETH_ADDR_LEN]; /* source mac address */
+	u_int16_t ether_type; /* ethertype: arp, rarp, ip ... */
 };
 
 /* Ethernet ARP packet from RFC 826 */

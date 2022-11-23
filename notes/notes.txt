@@ -1,0 +1,4 @@
+vagrant@stretch:/vagrant$ sudo arp -a
+? (10.0.2.3) at 52:54:00:12:35:03 [ether] on eth0
+? (10.0.2.2) at 52:54:00:12:35:02 [ether] on eth0
+vagrant@stretch:/vagrant$ sudo arping -A -i eth0 10.0.2.3

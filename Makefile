@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/11/22 18:09:12 by lnicosia         ###   ########.fr        #
+#    Updated: 2022/11/23 17:28:05 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -139,9 +139,13 @@ fclean: clean
 re: fclean # Make -j support
 	@ $(MAKE) all
 
+run:
+	@ $(MAKE) all
+	sudo ./$(NAME)
+
 todo:
 	@ printf "%b" $(WARNING)
 	@ grep -nr "TODO" $(SRCDIR) $(HEADDIR) || true
 	@ printf "%b" $(BLANK)
 
-.PHONY: all clean fclean re todo
+.PHONY: all clean fclean re todo run

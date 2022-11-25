@@ -13,9 +13,9 @@
 
 /* Ethernet header */
 struct ethernet_hdr {
-	u_char		ether_dmac[ETH_ADDR_LEN];	/* Destination mac address */
-	u_char		ether_smac[ETH_ADDR_LEN];	/* Source mac address */
-	u_int16_t	ether_type;					/* Ethertype: arp, rarp, ip ... */
+	uint8_t		dmac[ETH_ADDR_LEN];	/* Destination mac address */
+	uint8_t		smac[ETH_ADDR_LEN];	/* Source mac address */
+	u_int16_t	type;				/* Ethertype: arp, rarp, ip ... */
 };
 
 #define HARDWARE_ETHERNET 0x1	/* Ethernet type */

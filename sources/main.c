@@ -24,6 +24,56 @@ void print_mac(uint8_t *mac)
 	}
 }
 
+void debug_arp(struct arp_hdr *arp)
+{
+	printf("_____ARP_____\n");
+
+	/* Type informations */
+	printf("Hardware type: %s\n",
+		(ntohs(arp->hrd) == HARDWARE_ETHERNET) ? "Ethernet" : "Unknown");
+	printf("Protocol type: %s\n",
+		(ntohs(arp->pro) == ETH_P_IP) ? "IPv4" : "Unknown");
+	printf("Operation: %s\n",
+		(ntohs(arp->op) == ARP_REQUEST) ? "ARP Request" : "ARP Reply");
+
+	/* Addresses informations */
+	/* Sender */
+	printf("Sender MAC: ");
+	print_mac(arp->sha);
+	printf("\n");
+	printf("Sender IP: ");
+	print_ip(arp->sip);
+	printf("\n");
+
+	/* Target */
+	printf("Target MAC: ");
+	print_mac(arp->tha);
+	printf("\n");
+	printf("Target IP: ");
+	print_ip(arp->tip);
+	printf("\n");
+}
+
+void debug_eth(struct ethernet_hdr *ethernet)
+{
+	printf("_____ETH_____\n");
+
+	/* Type */
+	printf("Ethernet type: %s\n",
+		(ntohs(ethernet->type) == ETH_P_ARP) ? "ARP" : "Other");
+
+	/* Addresses informations */
+	/* Sender */
+	printf("Sender MAC: ");
+	print_mac(ethernet->smac);
+	printf("\n");
+
+	/* Target */
+	printf("Target MAC: ");
+	print_mac(ethernet->dmac);
+	printf("\n");
+}
+
 void debug_packet(char *buffer)
 {
 	struct arp_hdr *arp;
@@ -33,36 +83,13 @@ void debug_packet(char *buffer)
 	ethernet = (struct ethernet_hdr *)buffer;
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
 
-	type = ntohs(ethernet->ether_type);
+	type = ntohs(ethernet->type);
 
 	if (type == ETH_P_ARP) {
-		printf("=Received Packet=\n");
-
-		/* Type informations */
-		printf("Hardware type: %s\n",
-			(ntohs(arp->hrd) == HARDWARE_ETHERNET) ? "Ethernet" : "Unknown");
-		printf("Protocol type: %s\n",
-			(ntohs(arp->pro) == ETH_P_IP) ? "IPv4" : "Unknown");
-		printf("Operation: %s\n",
-			(ntohs(arp->op) == ARP_REQUEST) ? "ARP Request" : "ARP Reply");
-
-		/* Addresses informations */
-		/* Sender */
-		printf("Sender MAC: ");
-		print_mac(arp->sha);
 		printf("\n");
-		printf("Sender IP: ");
-		print_ip(arp->sip);
-		printf("\n");
-		/* Target */
-		printf("Target MAC: ");
-		print_mac(arp->tha);
-		printf("\n");
-		printf("Target IP: ");
-		print_ip(arp->tip);
-		printf("\n");
-
-		printf("================\n");
+		debug_eth(ethernet);
+		debug_arp(arp);
+		printf("_______________________________\n");
 	}
 }
 

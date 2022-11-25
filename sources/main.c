@@ -1,5 +1,10 @@
 #include "malcolm.h"
 
+uint16_t ft_ntohs(uint16_t netshort)
+{
+	return swap_uint16(netshort);
+}
+
 void print_ip(uint8_t *ip_address)
 {
 	int i = 0;
@@ -30,11 +35,11 @@ void debug_arp(struct arp_hdr *arp)
 
 	/* Type informations */
 	printf("Hardware type: %s\n",
-		(ntohs(arp->hrd) == HARDWARE_ETHERNET) ? "Ethernet" : "Unknown");
+		(ft_ntohs(arp->hrd) == HARDWARE_ETHERNET) ? "Ethernet" : "Unknown");
 	printf("Protocol type: %s\n",
-		(ntohs(arp->pro) == ETH_P_IP) ? "IPv4" : "Unknown");
+		(ft_ntohs(arp->pro) == ETH_P_IP) ? "IPv4" : "Unknown");
 	printf("Operation: %s\n",
-		(ntohs(arp->op) == ARP_REQUEST) ? "ARP Request" : "ARP Reply");
+		(ft_ntohs(arp->op) == ARP_REQUEST) ? "ARP Request" : "ARP Reply");
 
 	/* Addresses informations */
 	/* Sender */
@@ -60,7 +65,7 @@ void debug_eth(struct ethernet_hdr *ethernet)
 
 	/* Type */
 	printf("Ethernet type: %s\n",
-		(ntohs(ethernet->type) == ETH_P_ARP) ? "ARP" : "Other");
+		(ft_ntohs(ethernet->type) == ETH_P_ARP) ? "ARP" : "Other");
 
 	/* Addresses informations */
 	/* Sender */
@@ -83,7 +88,7 @@ void debug_packet(char *buffer)
 	ethernet = (struct ethernet_hdr *)buffer;
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
 
-	type = ntohs(ethernet->type);
+	type = ft_ntohs(ethernet->type);
 
 	if (type == ETH_P_ARP) {
 		printf("\n");

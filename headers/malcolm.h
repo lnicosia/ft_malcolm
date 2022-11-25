@@ -1,6 +1,8 @@
 #ifndef MALCOLM_H
 # define MALCOLM_H
 
+#include "libft.h"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <linux/if_ether.h>

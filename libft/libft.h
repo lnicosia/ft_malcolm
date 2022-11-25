@@ -6,7 +6,7 @@
 /*   By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/11/11 10:50:56 by lumenthi          #+#    #+#             */
-/*   Updated: 2022/10/11 11:10:36 by lumenthi         ###   ########.fr       */
+/*   Updated: 2022/11/25 17:45:30 by lumenthi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,5 +121,7 @@ uint64_t		get_time(void);
 int				ft_abs(int nb);
 long			ft_labs(long nb);
 long long		ft_llabs(long long nb);
+uint16_t		swap_uint16(uint16_t nb);
+uint32_t		swap_uint32(uint32_t nb);
 
 #endif

@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/11/23 17:28:05 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/11/25 15:57:41 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -141,11 +141,17 @@ re: fclean # Make -j support
 
 run:
 	@ $(MAKE) all
-	sudo ./$(NAME)
+	@ sudo ./$(NAME)
 
 todo:
 	@ printf "%b" $(WARNING)
 	@ grep -nr "TODO" $(SRCDIR) $(HEADDIR) || true
 	@ printf "%b" $(BLANK)
 
-.PHONY: all clean fclean re todo run
+IP="10.0.2.3"
+
+ping:
+	@ printf "Pinging $(IP)..."
+	@ sudo arping -A -i eth0 $(IP) > /dev/null
+
+.PHONY: all clean fclean re todo run ping

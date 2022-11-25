@@ -1,15 +1,27 @@
 #include "malcolm.h"
 
-void print_ip(uint32_t ip_address)
+void print_ip(uint8_t *ip_address)
 {
-	unsigned char byte[4]  = {0,0,0,0};
 	int i = 0;
-	while (i < 4) {
-		byte[i] = (ip_address >> (i*8)) & 0xFF;
-		printf("%d:", byte[i]);
+
+	while (i < IP_ADDR_LEN) {
+		printf("%d", ip_address[i]);
+		if (i < IP_ADDR_LEN-1)
+			printf(".");
 		i++;
 	}
-	printf("\n");
+}
+
+void print_mac(uint8_t *mac)
+{
+	int i = 0;
+
+	while (i < ETH_ADDR_LEN) {
+		printf("%02X", mac[i]);
+		if (i < ETH_ADDR_LEN-1)
+			printf(":");
+		i++;
+	}
 }
 
 void debug_packet(char *buffer)
@@ -23,18 +35,41 @@ void debug_packet(char *buffer)
 
 	type = ntohs(ethernet->ether_type);
 
-	if (type == ETHERTYPE_ARP) {
-		printf("==Received an ARP request==\n");
-		print_ip(arp->ar_tip);
-		printf("= opcode: %d\n", htons(arp->ar_op));
-		printf("===========================\n");
+	if (type == ETH_P_ARP) {
+		printf("=Received Packet=\n");
+
+		/* Type informations */
+		printf("Hardware type: %s\n",
+			(ntohs(arp->hrd) == HARDWARE_ETHERNET) ? "Ethernet" : "Unknown");
+		printf("Protocol type: %s\n",
+			(ntohs(arp->pro) == ETH_P_IP) ? "IPv4" : "Unknown");
+		printf("Operation: %s\n",
+			(ntohs(arp->op) == ARP_REQUEST) ? "ARP Request" : "ARP Reply");
+
+		/* Addresses informations */
+		/* Sender */
+		printf("Sender MAC: ");
+		print_mac(arp->sha);
+		printf("\n");
+		printf("Sender IP: ");
+		print_ip(arp->sip);
+		printf("\n");
+		/* Target */
+		printf("Target MAC: ");
+		print_mac(arp->tha);
+		printf("\n");
+		printf("Target IP: ");
+		print_ip(arp->tip);
+		printf("\n");
+
+		printf("================\n");
 	}
 }
 
 int ft_malcolm(void)
 {
 	int sockfd;
-	unsigned int len = 9999; // sizeof struct arp_packet
+	int len = sizeof(struct ethernet_hdr) + sizeof(struct arp_hdr);
 	char buffer[len];
 	int ret;
 
@@ -44,6 +79,7 @@ int ft_malcolm(void)
 		return 1;
 	}
 
+	printf("Sniffing ARP packets...\n");
 	while ((ret = recv(sockfd, buffer, len, 0)) != -1) {
 		if (ret > 0)
 			debug_packet(buffer);

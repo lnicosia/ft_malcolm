@@ -79,7 +79,22 @@ void debug_eth(struct ethernet_hdr *ethernet)
 	printf("\n");
 }
 
-void debug_packet(char *buffer)
+void debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp)
+{
+	printf("\n");
+	debug_eth(ethernet);
+	debug_arp(arp);
+	printf("_______________________________\n");
+}
+
+int send_back(struct ethernet_hdr *ethernet, struct arp_hdr *arp)
+{
+	(void)ethernet;
+	(void)arp;
+	return 0;
+}
+
+void handle_packet(char *buffer)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
@@ -91,10 +106,8 @@ void debug_packet(char *buffer)
 	type = ft_ntohs(ethernet->type);
 
 	if (type == ETH_P_ARP) {
-		printf("\n");
-		debug_eth(ethernet);
-		debug_arp(arp);
-		printf("_______________________________\n");
+		debug_packet(ethernet, arp);
+		send_back(ethernet, arp);
 	}
 }
 
@@ -114,7 +127,7 @@ int ft_malcolm(void)
 	printf("Sniffing ARP packets...\n");
 	while ((ret = recv(sockfd, buffer, len, 0)) != -1) {
 		if (ret > 0)
-			debug_packet(buffer);
+			handle_packet(buffer);
 	}
 
 	close(sockfd);

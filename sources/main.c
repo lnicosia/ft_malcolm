@@ -126,6 +126,22 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 	return 0;
 }
 
+int filter_out(uint8_t *ip)
+{
+	/* 172.18.0.2 */
+	/* TODO: Must take this IP from arg list (MAC address too) */
+	uint8_t target_ip[IP_ADDR_LEN] = {172, 17, 0, 2};
+
+	int i = 0;
+	while (i < IP_ADDR_LEN) {
+		if (target_ip[i] != ip[i])
+			return 1;
+		i++;
+	}
+
+	return 0;
+}
+
 void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 {
 	struct arp_hdr *arp;
@@ -137,11 +153,17 @@ void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
 
 	type = ft_ntohs(ethernet->type);
+	/* TODO: Check if an OPCODE check is needed */
 	opcode = ft_ntohs(arp->op);
 
-	if (type == ETH_P_ARP && opcode == ARP_REQUEST) {
+	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
+		!filter_out(arp->sip)) {
 		debug_packet(ethernet, arp);
 		send_back(sockfd, src_addr, ethernet, arp);
+	}
+	else {
+		printf("Filtering request from: ");
+		print_ip(arp->sip);
 	}
 }
 

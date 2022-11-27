@@ -110,6 +110,7 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 	packet.arp.op = ft_htons(ARP_REPLY);
 
 	/* Changing MAC addresses */
+	ft_memcpy(packet.ethernet.smac, dest_mac, sizeof(packet.ethernet.smac));
 	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
 	ft_memcpy(packet.arp.sha, dest_mac, sizeof(packet.arp.sha));
 
@@ -130,13 +131,15 @@ void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
 	uint16_t type;
+	uint16_t opcode;
 
 	ethernet = (struct ethernet_hdr *)buffer;
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
 
 	type = ft_ntohs(ethernet->type);
+	opcode = ft_ntohs(arp->op);
 
-	if (type == ETH_P_ARP) {
+	if (type == ETH_P_ARP && opcode == ARP_REQUEST) {
 		debug_packet(ethernet, arp);
 		send_back(sockfd, src_addr, ethernet, arp);
 	}

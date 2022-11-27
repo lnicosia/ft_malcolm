@@ -1,12 +1,16 @@
-$ sudo docker start malcolm1
-$ sudo docker ps
-f42102582297
-$ sudo docker exec -it f42102582297 /bin/bash
+# Shell into the docker
+$ sudo docker start malcolm1 && sudo docker exec -it f42102582297 /bin/bash
+
+# Map L2 network
 $ arp-scan 172.17.0.0/24
 Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
 172.17.0.1	02:42:19:de:fe:e4	(Unknown: locally administered)
-$ arping 172.17.0.1
 
+# Ping the host
+$ arping 172.17.0.1 1>/dev/null 2>/dev/null &
+
+# Kill the machine
+$ sudo docker kill malcolm1
 
 vagrant@stretch:/vagrant$ sudo arp -a
 ? (10.0.2.3) at 52:54:00:12:35:03 [ether] on eth0

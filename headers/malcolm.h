@@ -38,4 +38,10 @@ struct arp_hdr {
 	uint8_t		tip[IP_ADDR_LEN];	/* Target IP address */
 };
 
+/* Full ARP packet over Ethernet */
+struct arp_packet {
+	struct ethernet_hdr ethernet;
+	struct arp_hdr arp;
+};
+
 #endif

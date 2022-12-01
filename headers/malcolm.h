@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 
 #define IP_ADDR_LEN		4	/* in bytes */
 #define ETH_ADDR_LEN	6	/* in bytes */
@@ -64,6 +65,9 @@ struct sockaddr_ll {
 #define ft_ntohs(netshort) (swap_uint16(netshort))
 #define ft_htons(netshort) (swap_uint16(netshort))
 
+/* signal.c */
+void		inthandler(int sig);
+
 /* print.c */
 void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
 void		print_ip(int fd, uint8_t *ip_address);
@@ -71,5 +75,8 @@ void		print_mac(uint8_t *mac);
 
 /* parse_option_line.c */
 int			parse_option_line(int ac, char **av);
+
+/* global */
+extern uint8_t loop;
 
 #endif

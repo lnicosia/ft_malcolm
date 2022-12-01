@@ -208,8 +208,9 @@ int ft_malcolm(void)
 
 int main(int ac, char **av)
 {
-	(void)ac;
-	(void)av;
+	if (parse_option_line(ac, av)) {
+		return -1;
+	}
 	ft_malcolm();
 	return 0;
 }

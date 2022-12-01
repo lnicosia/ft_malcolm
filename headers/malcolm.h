@@ -59,4 +59,7 @@ struct sockaddr_ll {
 };
 */
 
+/*	parse_option_line.c */
+int	parse_option_line(int ac, char **av);
+
 #endif

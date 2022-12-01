@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/11/25 15:57:41 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/01 10:56:59 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -54,7 +54,8 @@ HEADERS = $(addprefix $(HEADDIR)/, $(HEADS))
 
 ###### SOURCES ######
 
-SRCS = main.c \
+SRCS =	main.c \
+		parse_option_line.c \
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 

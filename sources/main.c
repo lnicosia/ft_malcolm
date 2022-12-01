@@ -1,5 +1,7 @@
 #include "../headers/malcolm.h"
 
+t_data	g_data;
+
 uint16_t ft_ntohs(uint16_t netshort)
 {
 	return swap_uint16(netshort);
@@ -208,6 +210,7 @@ int ft_malcolm(void)
 
 int main(int ac, char **av)
 {
+	ft_bzero(&g_data, sizeof(g_data));
 	if (parse_option_line(ac, av)) {
 		return -1;
 	}

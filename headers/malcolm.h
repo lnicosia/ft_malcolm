@@ -59,7 +59,20 @@ struct sockaddr_ll {
 };
 */
 
+typedef struct	s_data
+{
+	uint8_t		source_ip[4];
+	uint8_t		source_mac[6];
+	uint8_t		target_ip[4];
+	uint8_t		target_mac[6];
+}				t_data;
+
+extern t_data	g_data;
+
 /*	parse_option_line.c */
-int	parse_option_line(int ac, char **av);
+int		parse_option_line(int ac, char **av);
+
+/* main.c */
+void	print_mac(uint8_t *mac);
 
 #endif

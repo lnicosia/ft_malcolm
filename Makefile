@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/01 10:56:59 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/01 09:57:15 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = ft_malcolm
 
 CC = gcc
 FLAGS = -Wall -Werror -Wextra -O3 -flto
-LDFLAGS = -lpthread -lm
+LDFLAGS =
 
 GREEN = '\033[4;32m'
 RED = '\033[4;31m'
@@ -56,6 +56,7 @@ HEADERS = $(addprefix $(HEADDIR)/, $(HEADS))
 
 SRCS =	main.c \
 		parse_option_line.c \
+		print.c
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 
@@ -140,19 +141,13 @@ fclean: clean
 re: fclean # Make -j support
 	@ $(MAKE) all
 
-run:
-	@ $(MAKE) all
-	@ sudo ./$(NAME)
-
 todo:
 	@ printf "%b" $(WARNING)
 	@ grep -nr "TODO" $(SRCDIR) $(HEADDIR) || true
 	@ printf "%b" $(BLANK)
 
-IP="10.0.2.3"
+run:
+	@ $(MAKE) all
+	@ sudo ./$(NAME)
 
-ping:
-	@ printf "Pinging $(IP)..."
-	@ sudo arping -A -i eth0 $(IP) > /dev/null
-
-.PHONY: all clean fclean re todo run ping
+.PHONY: all clean fclean re todo run

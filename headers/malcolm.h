@@ -60,7 +60,16 @@ struct sockaddr_ll {
 };
 */
 
-/*	parse_option_line.c */
-int	parse_option_line(int ac, char **av);
+/* Macro functions */
+#define ft_ntohs(netshort) (swap_uint16(netshort))
+#define ft_htons(netshort) (swap_uint16(netshort))
+
+/* print.c */
+void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
+void		print_ip(int fd, uint8_t *ip_address);
+void		print_mac(uint8_t *mac);
+
+/* parse_option_line.c */
+int			parse_option_line(int ac, char **av);
 
 #endif

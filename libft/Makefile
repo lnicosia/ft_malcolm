@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/01/04 10:37:11 by lumenthi          #+#    #+#              #
-#    Updated: 2022/10/11 11:10:04 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/11/25 17:41:20 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -117,7 +117,8 @@ SRCS = ft_atoi.c \
 		ft_strjoin_free.c \
 		ft_rmchar.c \
 		time_utils.c \
-		ft_abs.c 
+		ft_abs.c \
+		ft_swap.c
 
 OBJDIR = objs
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.c=.o))

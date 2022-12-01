@@ -1,21 +1,27 @@
 #ifndef MALCOLM_H
 # define MALCOLM_H
 
+#include "libft.h"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <linux/if_ether.h>
 #include <arpa/inet.h>
+#include <linux/if_packet.h>
+#include <net/ethernet.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
+#include <signal.h>
 
 #define IP_ADDR_LEN		4	/* in bytes */
 #define ETH_ADDR_LEN	6	/* in bytes */
 
 /* Ethernet header */
 struct ethernet_hdr {
-	u_char		ether_dmac[ETH_ADDR_LEN];	/* Destination mac address */
-	u_char		ether_smac[ETH_ADDR_LEN];	/* Source mac address */
-	u_int16_t	ether_type;					/* Ethertype: arp, rarp, ip ... */
+	uint8_t		dmac[ETH_ADDR_LEN];	/* Destination mac address */
+	uint8_t		smac[ETH_ADDR_LEN];	/* Source mac address */
+	u_int16_t	type;				/* Ethertype: arp, rarp, ip ... */
 };
 
 #define HARDWARE_ETHERNET 0x1	/* Ethernet type */
@@ -35,5 +41,51 @@ struct arp_hdr {
 	uint8_t		tha[ETH_ADDR_LEN];	/* Target hardware address */
 	uint8_t		tip[IP_ADDR_LEN];	/* Target IP address */
 };
+
+/* Full ARP packet over Ethernet */
+struct arp_packet {
+	struct ethernet_hdr ethernet;
+	struct arp_hdr arp;
+};
+
+/* sockaddr_ll content */
+/*
+struct sockaddr_ll {
+	unsigned short	sll_family;
+	__be16		sll_protocol;
+	int		sll_ifindex;
+	unsigned short	sll_hatype;
+	unsigned char	sll_pkttype;
+	unsigned char	sll_halen;
+	unsigned char	sll_addr[8];
+};
+*/
+
+typedef struct	s_data
+{
+	uint8_t		source_ip[4];
+	uint8_t		source_mac[6];
+	uint8_t		target_ip[4];
+	uint8_t		target_mac[6];
+	uint8_t		loop;
+}				t_data;
+
+extern t_data	g_data;
+
+/* Macro functions */
+#define ft_ntohs(netshort) (swap_uint16(netshort))
+#define ft_htons(netshort) (swap_uint16(netshort))
+
+/* signal.c */
+void		inthandler(int sig);
+
+/* print.c */
+void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
+void		print_ip(int fd, uint8_t *ip_address);
+void		print_mac(uint8_t *mac);
+
+/* parse_option_line.c */
+int			parse_option_line(int ac, char **av);
+
 
 #endif

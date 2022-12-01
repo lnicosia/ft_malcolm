@@ -1,4 +1,29 @@
-vagrant@stretch:/vagrant$ sudo arp -a
-? (10.0.2.3) at 52:54:00:12:35:03 [ether] on eth0
-? (10.0.2.2) at 52:54:00:12:35:02 [ether] on eth0
-vagrant@stretch:/vagrant$ sudo arping -A -i eth0 10.0.2.3
+# Map L2 network
+$ arp-scan 172.17.0.0/24
+
+# ARPing
+$ arping 172.17.0.1 1>/dev/null 2>/dev/null &
+
+# Kill the machine
+$ sudo docker kill malcolm1
+
+# Init docker
+sudo docker run -it --name malcolm1 jgoerzen/debian-base-minimal /bin/bash
+# Bash into the docker
+sudo docker start malcolm1 && sudo docker exec -it f42102582297 /bin/bash
+
+# Init docker 2
+sudo docker run -it --name malcolm2 jgoerzen/debian-base-minimal /bin/bash
+# Bash into docker 2
+sudo docker start malcolm2 && sudo docker exec -it 7897dbca677e /bin/bash
+
+# Install arpspoof
+$ sudo apt-get install dsniff
+
+# Check arp cache
+$ ip neighbor
+
+# Docker needed installs
+apt-get update
+apt-get install iputils-ping iproute2 net-tools curl wget zsh git -y
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -

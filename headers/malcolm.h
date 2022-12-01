@@ -11,6 +11,8 @@
 #include <net/ethernet.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
+#include <signal.h>
 
 #define IP_ADDR_LEN		4	/* in bytes */
 #define ETH_ADDR_LEN	6	/* in bytes */
@@ -65,14 +67,25 @@ typedef struct	s_data
 	uint8_t		source_mac[6];
 	uint8_t		target_ip[4];
 	uint8_t		target_mac[6];
+	uint8_t		loop;
 }				t_data;
 
 extern t_data	g_data;
 
-/*	parse_option_line.c */
-int		parse_option_line(int ac, char **av);
+/* Macro functions */
+#define ft_ntohs(netshort) (swap_uint16(netshort))
+#define ft_htons(netshort) (swap_uint16(netshort))
 
-/* main.c */
-void	print_mac(uint8_t *mac);
+/* signal.c */
+void		inthandler(int sig);
+
+/* print.c */
+void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
+void		print_ip(int fd, uint8_t *ip_address);
+void		print_mac(uint8_t *mac);
+
+/* parse_option_line.c */
+int			parse_option_line(int ac, char **av);
+
 
 #endif

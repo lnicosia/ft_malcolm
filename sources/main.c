@@ -110,6 +110,9 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 	packet.arp.op = ft_htons(ARP_REPLY);
 
 	/* Changing MAC addresses */
+	/* Broadcast */
+	/* ft_memset(packet.ethernet.dmac, 0xff, ETH_ADDR_LEN); */
+	ft_memcpy(packet.ethernet.dmac, packet.ethernet.smac, ETH_ADDR_LEN);
 	ft_memcpy(packet.ethernet.smac, dest_mac, sizeof(packet.ethernet.smac));
 	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
 	ft_memcpy(packet.arp.sha, dest_mac, sizeof(packet.arp.sha));
@@ -123,12 +126,14 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 		(struct sockaddr *)&src_addr, addr_len);
 	printf("Wrote: %d bytes in socket\n", ret);
 
+	debug_packet(&packet.ethernet, &packet.arp);
+
 	return 0;
 }
 
 int filter_out(uint8_t *ip)
 {
-	/* 172.18.0.2 */
+	/* 172.17.0.2 */
 	/* TODO: Must take this IP from arg list (MAC address too) */
 	uint8_t target_ip[IP_ADDR_LEN] = {172, 17, 0, 2};
 
@@ -141,6 +146,8 @@ int filter_out(uint8_t *ip)
 
 	return 0;
 }
+
+// #include <stdlib.h>
 
 void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 {
@@ -158,8 +165,13 @@ void handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
 		!filter_out(arp->sip)) {
-		debug_packet(ethernet, arp);
-		send_back(sockfd, src_addr, ethernet, arp);
+		// debug_packet(ethernet, arp);
+		while (1) {
+			printf("Spoofing\n");
+			send_back(sockfd, src_addr, ethernet, arp);
+			sleep(5);
+		}
+		// exit(1);
 	}
 	else {
 		printf("Filtering request from: ");

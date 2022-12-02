@@ -3,8 +3,6 @@
 /* Control-C */
 void  inthandler(int sig)
 {
-	(void)sig;
-
 	g_data.loop = 0;
 
 	/* Restoring old MAC */
@@ -12,5 +10,7 @@ void  inthandler(int sig)
 
 	close(g_data.sockfd);
 
-	printf("\rQUITTING!\n");
+	if (sig == SIGINT)
+		printf("\b\b  ");
+	printf("\b \rQUITTING!\n");
 }

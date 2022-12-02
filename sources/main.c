@@ -85,8 +85,16 @@ int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 		print_mac(g_data.original_mac);
 		printf("\n");
 
+		uint8_t wait_loop_len = 4;
+		char *wait_loop = "/-\\-";
+		int i = 0;
+
 		while (g_data.loop) {
-			printf("Spoofing\n");
+			ft_putchar('\r');
+			printf("Spoofing ");
+			fflush(stdout);
+			ft_putchar(wait_loop[i % wait_loop_len]);
+			i++;
 			if (send_back(src_addr, ethernet, arp) != 0)
 				break;
 			clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
@@ -94,7 +102,7 @@ int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 		return 1;
 	}
 	else {
-		dprintf(STDOUT_FILENO, "Filtering request from: ");
+		dprintf(STDOUT_FILENO, "Filtering request from ");
 		print_ip(STDOUT_FILENO, arp->sip);
 		dprintf(STDOUT_FILENO, "\n");
 	}

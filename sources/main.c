@@ -1,4 +1,5 @@
 #include "../headers/malcolm.h"
+#include "../headers/options.h"
 
 t_data	g_data;
 
@@ -64,7 +65,7 @@ int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 	struct ethernet_hdr *ethernet;
 	uint16_t type;
 	uint16_t opcode;
-	struct timespec wait = {2, 0}; /* 2 seconds */
+	struct timespec wait = {g_data.frequency, 0};
 
 	ethernet = (struct ethernet_hdr *)buffer;
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
@@ -126,10 +127,16 @@ int ft_malcolm(void)
 
 int main(int ac, char **av)
 {
+	/* g_data default values */
 	ft_bzero(&g_data, sizeof(g_data));
+	g_data.frequency = 2; /* 2 Seconds */
 	g_data.loop = 1;
+
 	if (parse_option_line(ac, av))
 		return -1;
+
+	/* TODO: Must handle error cases for arguments (emptys, etc...) */
+	/* TODO: Check permissions (must be sudo), help/version must be displayed if not sudo */
 	ft_malcolm();
 	return 0;
 }

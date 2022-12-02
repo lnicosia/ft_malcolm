@@ -1,5 +1,6 @@
 #include "libft.h"
 #include "malcolm.h"
+#include "options.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,11 +41,17 @@ int		parse_option_line(int ac, char **av)
 {
 	int	opt, option_index = 0;
 	char		*optarg = NULL;
-	const char	*optstring = "hV";
+	const char	*optstring = "hVpvcnd:f:";
 	static struct option long_options[] = {
 		{"help",		0,					0, 'h'},
 		{"version",		0,					0, 'V'},
-		{0,				0,					0,	0 }
+		{"proxy",		0,					0, 'p'},
+		{"verbose",		0,					0, 'v'},
+		{"consistent",	0,					0, 'c'},
+		{"numeric",		0,					0, 'n'},
+		{"duration",	required_argument,	0, 'd'},
+		{"frequency",	required_argument,	0, 'f'},
+		{0,				0,					0, 0}
 	};
 	while ((opt = ft_getopt_long(ac, av, optstring, &optarg,
 					long_options, &option_index)) != -1) {
@@ -57,6 +64,25 @@ int		parse_option_line(int ac, char **av)
 			case 'V':
 				print_version(stdout);
 				return 1;
+			case 'p':
+				g_data.opt |= OPT_PROXY;
+				break;
+			case 'v':
+				g_data.opt |= OPT_VERBOSE;
+				break;
+			case 'c':
+				g_data.opt |= OPT_CONSISTENT;
+				break;
+			case 'n':
+				g_data.opt |= OPT_NUMERIC;
+				break;
+			case 'd':
+				g_data.opt |= OPT_DURATION;
+				break;
+			case 'f':
+				g_data.opt |= OPT_FREQUENCY;
+				/* TODO: Must take value between 0-20 seconds*/
+				break;
 			default:
 				return 1;
 		}

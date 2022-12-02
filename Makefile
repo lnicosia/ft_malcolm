@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/01 10:53:16 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/02 04:50:21 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -149,6 +149,6 @@ todo:
 
 run:
 	@ $(MAKE) all
-	@ sudo ./$(NAME)
+	@ sudo ./$(NAME) 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02
 
 .PHONY: all clean fclean re todo run

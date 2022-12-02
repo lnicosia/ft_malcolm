@@ -76,8 +76,13 @@ typedef struct	s_data
 	uint8_t		source_mac[6];
 	uint8_t		target_ip[4];
 	uint8_t		target_mac[6];
+	uint8_t		original_mac[6]; /* Original mac of the target */
+
 	uint8_t		loop;
 	uint64_t	opt;
+
+	int			sockfd;
+
 	uint32_t	frequency; /* In seconds */
 	uint32_t	duration; /* In seconds */
 }				t_data;

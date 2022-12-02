@@ -90,12 +90,12 @@ int		parse_proxy(int *arg_count, char *arg)
 			{
 				in_addr_t ip = inet_addr(arg);
 				uint8_t *ptr = (uint8_t*)&ip;
-				g_data.target_ip[0] = ptr[0];
-				g_data.target_ip[1] = ptr[1];
-				g_data.target_ip[2] = ptr[2];
-				g_data.target_ip[3] = ptr[3];
+				g_data.source_ip[0] = ptr[0];
+				g_data.source_ip[1] = ptr[1];
+				g_data.source_ip[2] = ptr[2];
+				g_data.source_ip[3] = ptr[3];
 				printf("Source ip = %s\n",
-						inet_ntoa(*(struct in_addr*)&g_data.target_ip));
+						inet_ntoa(*(struct in_addr*)&g_data.source_ip));
 				(*arg_count)++;
 				break;
 			}
@@ -123,7 +123,7 @@ int		parse_option_line(int ac, char **av)
 {
 	int	opt, option_index = 0;
 	char		*optarg = NULL;
-	const char	*optstring = "hVpvcnd:f:";
+	const char	*optstring = "hVpvPnd:f:i:";
 	static struct option long_options[] = {
 		{"help",		0,					0, 'h'},
 		{"version",		0,					0, 'V'},
@@ -133,6 +133,7 @@ int		parse_option_line(int ac, char **av)
 		{"numeric",		0,					0, 'n'},
 		{"duration",	required_argument,	0, 'd'},
 		{"frequency",	required_argument,	0, 'f'},
+		{"interface",	required_argument,	0, 'i'},
 		{0,				0,					0, 0}
 	};
 	while ((opt = ft_getopt_long(ac, av, optstring, &optarg,
@@ -146,6 +147,10 @@ int		parse_option_line(int ac, char **av)
 			case 'V':
 				print_version();
 				return 1;
+			case 'i':
+				g_data.opt |= OPT_INTERFACE;
+				g_data.interface = optarg;
+				break;
 			case 'P':
 				g_data.opt |= OPT_PROXY;
 				g_data.opt &= ~OPT_PERSISTENT;
@@ -182,6 +187,15 @@ int		parse_option_line(int ac, char **av)
 				return 1;
 		}
 	}
+
+	if (g_data.opt & OPT_PROXY && !(g_data.opt & OPT_INTERFACE)) {
+		fprintf(stderr,
+			"You must select an interface for proxying between 2 hosts\n"
+			"QUITTING!\n"
+		);
+		return 1;
+	}
+
 	int arg_count = 0;
 	for (int i = 1; i < ac; i++) {
 		if (!is_arg_an_opt(av, i, optstring, long_options)) {

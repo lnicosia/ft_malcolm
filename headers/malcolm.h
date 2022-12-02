@@ -60,13 +60,13 @@ struct arp_packet {
 /* sockaddr_ll content */
 /*
 struct sockaddr_ll {
-	unsigned short	sll_family;
-	__be16		sll_protocol;
-	int		sll_ifindex;
-	unsigned short	sll_hatype;
-	unsigned char	sll_pkttype;
-	unsigned char	sll_halen;
-	unsigned char	sll_addr[8];
+	unsigned short		sll_family;
+	__be16				sll_protocol;
+	int					sll_ifindex;
+	unsigned short		sll_hatype;
+	unsigned char		sll_pkttype;
+	unsigned char		sll_halen;
+	unsigned char		sll_addr[8];
 };
 */
 
@@ -82,6 +82,7 @@ typedef struct	s_data
 	uint64_t	opt;
 
 	int			sockfd;
+	char		*interface;
 
 	uint32_t	frequency; /* In seconds */
 	uint32_t	duration; /* In seconds */
@@ -92,6 +93,8 @@ extern t_data	g_data;
 /* Macro functions */
 #define ft_ntohs(netshort) (swap_uint16(netshort))
 #define ft_htons(netshort) (swap_uint16(netshort))
+#define ft_ntohl(netshort) (swap_uint32(netshort))
+#define ft_htonl(netshort) (swap_uint32(netshort))
 
 /* signal.c */
 void		inthandler(int sig);
@@ -109,5 +112,7 @@ void		print_version(void);
 /* parse_option_line.c */
 int			parse_option_line(int ac, char **av);
 
+/* proxy.c */
+int ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
 
 #endif

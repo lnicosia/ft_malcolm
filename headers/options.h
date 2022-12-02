@@ -9,5 +9,6 @@
 # define OPT_NUMERIC		(1UL << 3)
 # define OPT_DURATION		(1UL << 4)
 # define OPT_FREQUENCY		(1UL << 5)
+# define OPT_INTERFACE		(1UL << 6)
 
 #endif

@@ -132,6 +132,15 @@ int ft_malcolm(void)
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
 
+	if (g_data.opt & OPT_PROXY) {
+		dprintf(STDOUT_FILENO, "Proxying between ");
+		print_ip(STDOUT_FILENO, g_data.source_ip);
+		dprintf(STDOUT_FILENO, " and ");
+		print_ip(STDOUT_FILENO, g_data.target_ip);
+		dprintf(STDOUT_FILENO, "\n");
+		ft_proxy(g_data.source_ip, g_data.target_ip);
+		return 0;
+	}
 	printf("Sniffing ARP packets, press CTRL+C to exit...\n");
 	while (g_data.loop) {
 		ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,

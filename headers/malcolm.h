@@ -70,6 +70,7 @@ typedef struct	s_data
 	uint8_t		loop;
 	uint64_t	opt;
 	uint32_t	frequency; /* In seconds */
+	uint32_t	duration; /* In seconds */
 }				t_data;
 
 extern t_data	g_data;

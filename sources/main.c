@@ -9,7 +9,6 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 	struct arp_packet packet = {0};
 
-	uint8_t dest_mac[ETH_ADDR_LEN] = {0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
 	uint8_t tmp_ip[IP_ADDR_LEN] = {0};
 
 	/* Fill the new packet */
@@ -20,15 +19,17 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 
 	/* Changing MAC addresses */
 	ft_memcpy(packet.ethernet.dmac, packet.ethernet.smac, ETH_ADDR_LEN);
-	ft_memcpy(packet.ethernet.smac, dest_mac, sizeof(packet.ethernet.smac));
+	ft_memcpy(packet.ethernet.smac, g_data.source_mac, sizeof(packet.ethernet.smac));
 	ft_memcpy(packet.arp.tha, packet.arp.sha, sizeof(packet.arp.sha));
-	ft_memcpy(packet.arp.sha, dest_mac, sizeof(packet.arp.sha));
+	ft_memcpy(packet.arp.sha, g_data.source_mac, sizeof(packet.arp.sha));
 
 	/* Swapping IP addresses */
 	ft_memcpy(tmp_ip, packet.arp.sip, sizeof(packet.arp.sip));
 	ft_memcpy(packet.arp.sip, packet.arp.tip, sizeof(packet.arp.sip));
 	ft_memcpy(packet.arp.tip, tmp_ip, sizeof(packet.arp.sip));
 
+	//printf("Sending\n");
+	//debug_packet(&packet.ethernet, &packet.arp);
 	ret = sendto(sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&src_addr, addr_len);
 
@@ -47,12 +48,9 @@ int send_back(int sockfd, struct sockaddr_ll src_addr,
 
 int filter_out(uint8_t *ip)
 {
-	/* TODO: Must take this IP from arg list (MAC address too) */
-	uint8_t target_ip[IP_ADDR_LEN] = {172, 17, 0, 2};
-
 	int i = 0;
 	while (i < IP_ADDR_LEN) {
-		if (target_ip[i] != ip[i])
+		if (g_data.target_ip[i] != ip[i])
 			return 1;
 		i++;
 	}
@@ -87,8 +85,9 @@ int handle_packet(int sockfd, struct sockaddr_ll src_addr, char *buffer)
 		return 1;
 	}
 	else {
-		printf("Filtering request from: ");
+		dprintf(STDOUT_FILENO, "Filtering request from: ");
 		print_ip(STDOUT_FILENO, arp->sip);
+		dprintf(STDOUT_FILENO, "\n");
 	}
 	return 0;
 }

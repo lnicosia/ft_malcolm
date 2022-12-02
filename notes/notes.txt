@@ -25,5 +25,5 @@ $ ip neighbor
 
 # Docker needed installs
 apt-get update
-apt-get install iputils-ping iproute2 net-tools curl wget zsh git -y
+apt-get install iputils-ping iproute2 net-tools arping curl wget zsh git -y
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -

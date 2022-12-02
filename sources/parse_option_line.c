@@ -127,9 +127,9 @@ int		parse_option_line(int ac, char **av)
 	static struct option long_options[] = {
 		{"help",		0,					0, 'h'},
 		{"version",		0,					0, 'V'},
-		{"proxy",		0,					0, 'p'},
+		{"proxy",		0,					0, 'P'},
 		{"verbose",		0,					0, 'v'},
-		{"consistent",	0,					0, 'c'},
+		{"persistent",	0,					0, 'p'},
 		{"numeric",		0,					0, 'n'},
 		{"duration",	required_argument,	0, 'd'},
 		{"frequency",	required_argument,	0, 'f'},
@@ -146,15 +146,15 @@ int		parse_option_line(int ac, char **av)
 			case 'V':
 				print_version();
 				return 1;
-			case 'p':
+			case 'P':
 				g_data.opt |= OPT_PROXY;
-				g_data.opt &= ~OPT_CONSISTENT;
+				g_data.opt &= ~OPT_PERSISTENT;
 				break;
 			case 'v':
 				g_data.opt |= OPT_VERBOSE;
 				break;
-			case 'c':
-				g_data.opt |= OPT_CONSISTENT;
+			case 'p':
+				g_data.opt |= OPT_PERSISTENT;
 				g_data.opt &= ~OPT_PROXY;
 				break;
 			case 'n':

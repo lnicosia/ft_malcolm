@@ -90,13 +90,17 @@ int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 		int i = 0;
 
 		while (g_data.loop) {
+			if (send_back(src_addr, ethernet, arp) != 0)
+				break;
+			if (!(g_data.opt & OPT_PERSISTENT) && !(g_data.opt & OPT_PROXY)) {
+				printf("Spoofed, exiting\n");
+				break;
+			}
 			ft_putchar('\r');
 			printf("Spoofing ");
 			fflush(stdout);
 			ft_putchar(wait_loop[i % wait_loop_len]);
 			i++;
-			if (send_back(src_addr, ethernet, arp) != 0)
-				break;
 			clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 		}
 		return 1;
@@ -135,6 +139,8 @@ int ft_malcolm(void)
 		if (ret > 0 && handle_packet(src_addr, buffer))
 			break ;
 	}
+
+	close(g_data.sockfd);
 	return 0;
 }
 

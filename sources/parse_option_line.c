@@ -4,16 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void	print_usage(FILE *f)
-{
-	fprintf(f, "Usage:\n");
-}
-
-void	print_version(FILE *f)
-{
-	fprintf(f, "ft_malcolm version 0.1\n");
-}
-
 int		ft_atom(char *str, uint8_t *dest)
 {
 	char **split = ft_strsplit(str, ':');
@@ -59,10 +49,10 @@ int		parse_option_line(int ac, char **av)
 			case 0:
 				break;
 			case 'h':
-				print_usage(stdout);
+				print_help();
 				return 1;
 			case 'V':
-				print_version(stdout);
+				print_version();
 				return 1;
 			case 'p':
 				g_data.opt |= OPT_PROXY;

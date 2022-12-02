@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/02 04:50:21 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/02 05:21:26 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -47,7 +47,8 @@ LIBFT = $(LIBDIR)/libft.a
 
 ###### HEADERS ######
 
-HEADS = malcolm.h
+HEADS = malcolm.h \
+		options.h
 HEADERS = $(addprefix $(HEADDIR)/, $(HEADS))
 
 #####################
@@ -57,7 +58,8 @@ HEADERS = $(addprefix $(HEADDIR)/, $(HEADS))
 SRCS =	main.c \
 		parse_option_line.c \
 		print.c \
-		signal.c
+		signal.c \
+		help.c
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 

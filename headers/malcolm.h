@@ -14,6 +14,15 @@
 #include <time.h>
 #include <signal.h>
 
+/* ASCII ART */
+#define DB_PATH "ascii/"
+/* ******* */
+#define ONE_FILENAME "1.ascii"
+#define ASCII1 DB_PATH ONE_FILENAME
+/* ******* */
+#define TWO_FILENAME "2.ascii"
+#define ASCII2 DB_PATH TWO_FILENAME
+
 #define IP_ADDR_LEN		4	/* in bytes */
 #define ETH_ADDR_LEN	6	/* in bytes */
 
@@ -85,6 +94,11 @@ void		inthandler(int sig);
 void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
 void		print_ip(int fd, uint8_t *ip_address);
 void		print_mac(uint8_t *mac);
+
+/* help.c */
+void		print_help();
+void		print_usage(FILE *f);
+void		print_version(void);
 
 /* parse_option_line.c */
 int			parse_option_line(int ac, char **av);

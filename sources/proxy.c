@@ -78,8 +78,37 @@ static int interface_ip(char *name, uint8_t *ret)
 	return 0;
 }
 
+static int handle_packet(uint8_t *ip, char *buffer)
+{
+	struct arp_hdr *arp;
+	struct ethernet_hdr *ethernet;
+	uint16_t type;
+	uint16_t opcode;
+
+	ethernet = (struct ethernet_hdr *)buffer;
+	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
+
+	type = ft_ntohs(ethernet->type);
+	/* TODO: Check if an OPCODE check is needed */
+	opcode = ft_ntohs(arp->op);
+
+	if (type == ETH_P_ARP && opcode == ARP_REPLY &&
+		!filter_out(ip, arp->sip))
+	{
+		debug_packet(ethernet, arp);
+		return 1;
+	}
+	else {
+		dprintf(STDOUT_FILENO, "Filtering reply from ");
+		print_ip(STDOUT_FILENO, arp->sip);
+		dprintf(STDOUT_FILENO, "\n");
+	}
+
+	return 0;
+}
+
 static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
-	uint8_t *if_mac, uint8_t *if_ip)
+	uint8_t *if_mac, uint8_t *if_ip, uint8_t *received_mac)
 {
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 	struct arp_packet packet = {0};
@@ -109,11 +138,32 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 	ft_memcpy(packet.arp.sip, if_ip, IP_ADDR_LEN);
 	ft_memcpy(packet.arp.tip, tip, IP_ADDR_LEN);
 
-	debug_packet(&packet.ethernet, &packet.arp);
+	/* debug_packet(&packet.ethernet, &packet.arp); */
 
 	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&sockaddr, addr_len);
-	(void)ret;
+
+	if (ret <= 0) {
+		dprintf(STDERR_FILENO, "[!] Failed to send ARP request for host ");
+		print_ip(STDERR_FILENO, tip);
+		dprintf(STDERR_FILENO, "\n");
+		return 1;
+	}
+
+	int len = sizeof(struct ethernet_hdr) + sizeof(struct arp_hdr);
+	char buffer[len];
+
+	/* Waiting for the response */
+	(void)received_mac;
+	dprintf(STDOUT_FILENO, "Waiting ARP response for ip ");
+	print_ip(STDOUT_FILENO, tip);
+	dprintf(STDOUT_FILENO, ", press CTRL+C to exit...\n");
+	while (g_data.loop) {
+		ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,
+			(struct sockaddr *)&sockaddr, &addr_len);
+		if (ret > 0 && handle_packet(tip, buffer))
+			break ;
+	}
 
 	return 0;
 }
@@ -154,8 +204,10 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	sockaddr.sll_hatype = ARPHRD_ETHER;
 	sockaddr.sll_pkttype = ARPHRD_NETROM;
 
-	arp_request(source_ip, sockaddr, if_mac, if_ip);
-	arp_request(target_ip, sockaddr, if_mac, if_ip);
+	/* Getting MAC addresses with ARP requests */
+	if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac) ||
+		arp_request(target_ip, sockaddr, if_mac, if_ip, g_data.target_mac))
+		return 1;
 
 	return 0;
 }

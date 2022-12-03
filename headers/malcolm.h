@@ -76,7 +76,6 @@ typedef struct	s_data
 	uint8_t		source_mac[6];
 	uint8_t		target_ip[4];
 	uint8_t		target_mac[6];
-	uint8_t		original_mac[6]; /* Original mac of the target */
 
 	uint8_t		loop;
 	uint64_t	opt;
@@ -104,6 +103,9 @@ void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
 void		print_ip(int fd, uint8_t *ip_address);
 void		print_mac(uint8_t *mac);
 
+/* main.c */
+int			filter_out(uint8_t *tip, uint8_t *rip);
+
 /* help.c */
 void		print_help();
 void		print_usage(FILE *f);
@@ -113,6 +115,6 @@ void		print_version(void);
 int			parse_option_line(int ac, char **av);
 
 /* proxy.c */
-int ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
+int			ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
 
 #endif

@@ -44,11 +44,11 @@ int send_back(struct sockaddr_ll src_addr, struct ethernet_hdr *ethernet,
 	return 0;
 }
 
-int filter_out(uint8_t *ip)
+int filter_out(uint8_t *tip, uint8_t *rip)
 {
 	int i = 0;
 	while (i < IP_ADDR_LEN) {
-		if (g_data.target_ip[i] != ip[i])
+		if (tip[i] != rip[i])
 			return 1;
 		i++;
 	}
@@ -56,7 +56,7 @@ int filter_out(uint8_t *ip)
 	return 0;
 }
 
-int handle_packet(struct sockaddr_ll src_addr, char *buffer)
+static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
@@ -72,18 +72,12 @@ int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 	opcode = ft_ntohs(arp->op);
 
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
-		!filter_out(arp->sip)) {
+		!filter_out(g_data.target_ip, arp->sip)) {
 		debug_packet(ethernet, arp);
 		if (g_data.duration) {
 			printf("Spoofing the target for %d seconds\n", g_data.duration);
 			alarm(g_data.duration);
 		}
-
-		/* Saving original mac of the target */
-		ft_memcpy(g_data.original_mac, ethernet->smac, ETH_ADDR_LEN);
-		dprintf(STDOUT_FILENO, "Original mac: ");
-		print_mac(g_data.original_mac);
-		printf("\n");
 
 		uint8_t wait_loop_len = 4;
 		char *wait_loop = "/-\\-";

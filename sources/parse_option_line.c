@@ -1,5 +1,5 @@
-#include "libft.h"
-#include "malcolm.h"
+#include "../libft/libft.h"
+#include "../headers/malcolm.h"
 #include "options.h"
 #include <stdio.h>
 #include <stdlib.h>

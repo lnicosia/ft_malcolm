@@ -129,6 +129,7 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 			print_mac(received_mac);
 			fflush(stdout);
 			dprintf(STDOUT_FILENO, "\n");
+			alarm(0);
 			return 0;
 		}
 	}
@@ -209,6 +210,15 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		i++;
 
 		clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
+	}
+
+	/* Restore ARP cache for targets */
+	printf("Restoring ARP cache for targets\n");
+	i = 4;
+	while (i > 0) {
+		spoof(target_ip, g_data.target_mac, source_ip, g_data.source_mac, sockaddr);
+		spoof(source_ip, g_data.source_mac, target_ip, g_data.target_mac, sockaddr);
+		i--;
 	}
 
 	return 0;

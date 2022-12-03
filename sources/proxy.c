@@ -31,7 +31,6 @@ static int interface_mac(char *name, uint8_t *ret)
 	int sockfd;
 	struct ifreq if_mac;
 	struct sockaddr sockaddr;
-	(void)ret;
 
 	/* Open RAW socket to send on */
 	if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
@@ -53,29 +52,61 @@ static int interface_mac(char *name, uint8_t *ret)
 	return 0;
 }
 
-static int arp_request(uint8_t *ip, struct sockaddr_ll sockaddr, uint8_t *if_mac)
+static int interface_ip(char *name, uint8_t *ret)
 {
-	// socklen_t addr_len = sizeof(struct sockaddr_ll);
-	// struct arp_packet packet = {0};
-	(void)ip;
+	int sockfd;
+	struct ifreq if_ip;
+	struct sockaddr_in sockaddr;
+
+	/* Open RAW socket to send on */
+	if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
+		perror("socket");
+		return -1;
+	}
+
+	ft_bzero(&if_ip, sizeof(struct ifreq));
+	ft_strncpy(if_ip.ifr_name, name, IFNAMSIZ - 1);
+	if (ioctl(sockfd, SIOCGIFADDR, &if_ip) < 0) {
+		perror("SIOCGIFADDR");
+		close(sockfd);
+		return -1;
+	}
+	sockaddr = *(struct sockaddr_in *)&if_ip.ifr_addr;
+	ft_memcpy(ret, (uint8_t*)&sockaddr.sin_addr, IP_ADDR_LEN);
+
+	close(sockfd);
+	return 0;
+}
+
+static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
+	uint8_t *if_mac, uint8_t *if_ip)
+{
+	socklen_t addr_len = sizeof(struct sockaddr_ll);
+	struct arp_packet packet = {0};
+	uint8_t brdcst[ETH_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 	(void)sockaddr;
-	(void)if_mac;
+	(void)addr_len;
 
-	/* Set the ARP opcode to reply */
-//	packet.arp.op = ft_htons(ARP_REQUEST);
+	/* Setting ETHERNET flags */
+	packet.ethernet.type = ft_ntohs(ETH_P_ARP);
 
-	/* Changing MAC addresses */
-//	ft_memcpy(packet.ethernet.dmac, packet.ethernet.smac, ETH_ADDR_LEN);
-//	ft_memcpy(packet.ethernet.smac, g_data.source_mac, ETH_ADDR_LEN);
-//	ft_memcpy(packet.arp.tha, packet.arp.sha, ETH_ADDR_LEN);
-//	ft_memcpy(packet.arp.sha, g_data.source_mac, ETH_ADDR_LEN);
+	/* Setting ARP flags */
+	packet.arp.hrd = ft_htons(HARDWARE_ETHERNET);
+	packet.arp.pro = ft_htons(ETH_P_IP);
+	packet.arp.op = ft_htons(ARP_REQUEST);
 
-	/* Swapping IP addresses */
-//	ft_memcpy(tmp_ip, packet.arp.sip, IP_ADDR_LEN);
-//	ft_memcpy(packet.arp.sip, packet.arp.tip, IP_ADDR_LEN);
-//	ft_memcpy(packet.arp.tip, tmp_ip, IP_ADDR_LEN);
+	/* Setting MAC addresses */
+	/* Ethernet */
+	ft_memcpy(packet.ethernet.dmac, brdcst, ETH_ADDR_LEN);
+	ft_memcpy(packet.ethernet.smac, if_mac, ETH_ADDR_LEN);
+	/* ARP */
+	ft_memcpy(packet.arp.sha, if_mac, ETH_ADDR_LEN);
 
-	/* debug_packet(&packet.ethernet, &packet.arp); */
+	/* Setting IP addresses */
+	ft_memcpy(packet.arp.sip, if_ip, IP_ADDR_LEN);
+	ft_memcpy(packet.arp.tip, tip, IP_ADDR_LEN);
+
+	debug_packet(&packet.ethernet, &packet.arp);
 
 //	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
 //		(struct sockaddr *)&src_addr, addr_len);
@@ -89,6 +120,7 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	struct sockaddr_ll sockaddr;
 	int if_idx;
 	uint8_t if_mac[ETH_ADDR_LEN] = {0};
+	uint8_t if_ip[IP_ADDR_LEN] = {0};
 
 	ft_bzero(&sockaddr, sizeof(struct sockaddr_ll));
 
@@ -97,10 +129,16 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		return 1;
 	if (interface_mac(g_data.interface, if_mac) < 0)
 		return 1;
+	if (interface_ip(g_data.interface, if_ip) < 0)
+		return 1;
 
-	printf("%s has index %d and MAC address ", g_data.interface, if_idx);
+	/* Debug prints */
+	/* printf("%s has index %d with MAC address ", g_data.interface, if_idx);
 	print_mac(if_mac);
-	printf("\n");
+	printf(" and IP address ");
+	fflush(stdout);
+	print_ip(STDOUT_FILENO, if_ip);
+	printf("\n"); */
 
 	/* ret = recvfrom(g_data.sockfd, buffer, len, 0,
 		(struct sockaddr *)&sockaddr, &addr_len); */
@@ -112,8 +150,8 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	sockaddr.sll_hatype = ARPHRD_ETHER;
 	sockaddr.sll_pkttype = PACKET_HOST;
 
-	arp_request(source_ip, sockaddr, if_mac);
-	arp_request(target_ip, sockaddr, if_mac);
+	arp_request(source_ip, sockaddr, if_mac, if_ip);
+	arp_request(target_ip, sockaddr, if_mac, if_ip);
 
 	return 0;
 }

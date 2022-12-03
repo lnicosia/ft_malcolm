@@ -78,7 +78,7 @@ static int interface_ip(char *name, uint8_t *ret)
 	return 0;
 }
 
-static int handle_packet(uint8_t *ip, char *buffer)
+static int handle_packet(uint8_t *ip, char *buffer, uint8_t *received_mac)
 {
 	struct arp_hdr *arp;
 	struct ethernet_hdr *ethernet;
@@ -93,9 +93,8 @@ static int handle_packet(uint8_t *ip, char *buffer)
 	opcode = ft_ntohs(arp->op);
 
 	if (type == ETH_P_ARP && opcode == ARP_REPLY &&
-		!filter_out(ip, arp->sip))
-	{
-		debug_packet(ethernet, arp);
+		!filter_out(ip, arp->sip)) {
+		ft_memcpy(received_mac, arp->sha, ETH_ADDR_LEN);
 		return 1;
 	}
 	else {
@@ -154,18 +153,23 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 	char buffer[len];
 
 	/* Waiting for the response */
-	(void)received_mac;
 	dprintf(STDOUT_FILENO, "Waiting ARP response for ip ");
 	print_ip(STDOUT_FILENO, tip);
 	dprintf(STDOUT_FILENO, ", press CTRL+C to exit...\n");
 	while (g_data.loop) {
 		ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,
 			(struct sockaddr *)&sockaddr, &addr_len);
-		if (ret > 0 && handle_packet(tip, buffer))
-			break ;
+		if (ret > 0 && handle_packet(tip, buffer, received_mac)) {
+			print_ip(STDOUT_FILENO, tip);
+			dprintf(STDOUT_FILENO, " is at ");
+			print_mac(received_mac);
+			fflush(stdout);
+			dprintf(STDOUT_FILENO, "\n");
+			return 0;
+		}
 	}
 
-	return 0;
+	return 1;
 }
 
 int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)

@@ -83,15 +83,18 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 {
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 	struct arp_packet packet = {0};
+	int ret;
+	/* TODO: Parse dynamically the broadcast MAC address ? */
+	/* We assume the broadcast is always ff:ff:ff:ff:ff:ff */
 	uint8_t brdcst[ETH_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-	(void)sockaddr;
-	(void)addr_len;
 
 	/* Setting ETHERNET flags */
 	packet.ethernet.type = ft_ntohs(ETH_P_ARP);
 
 	/* Setting ARP flags */
 	packet.arp.hrd = ft_htons(HARDWARE_ETHERNET);
+	packet.arp.hln = ETH_ADDR_LEN;
+	packet.arp.pln = IP_ADDR_LEN;
 	packet.arp.pro = ft_htons(ETH_P_IP);
 	packet.arp.op = ft_htons(ARP_REQUEST);
 
@@ -108,8 +111,9 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 
 	debug_packet(&packet.ethernet, &packet.arp);
 
-//	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
-//		(struct sockaddr *)&src_addr, addr_len);
+	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
+		(struct sockaddr *)&sockaddr, addr_len);
+	(void)ret;
 
 	return 0;
 }
@@ -148,7 +152,7 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	sockaddr.sll_protocol = htons(ETH_P_ALL);
 	sockaddr.sll_ifindex = if_idx;
 	sockaddr.sll_hatype = ARPHRD_ETHER;
-	sockaddr.sll_pkttype = PACKET_HOST;
+	sockaddr.sll_pkttype = ARPHRD_NETROM;
 
 	arp_request(source_ip, sockaddr, if_mac, if_ip);
 	arp_request(target_ip, sockaddr, if_mac, if_ip);

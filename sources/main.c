@@ -153,6 +153,7 @@ int ft_malcolm(void)
 	return 0;
 }
 
+/* TODO: Check allowed functions and fd leaks */
 int main(int ac, char **av)
 {
 	/* g_data default values */

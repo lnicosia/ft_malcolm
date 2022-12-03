@@ -68,7 +68,6 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
 
 	type = ft_ntohs(ethernet->type);
-	/* TODO: Check if an OPCODE check is needed */
 	opcode = ft_ntohs(arp->op);
 
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
@@ -81,7 +80,7 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 
 		uint8_t wait_loop_len = 4;
 		char *wait_loop = "/-\\-";
-		int i = 0;
+		uint64_t i = 0;
 
 		while (g_data.loop) {
 			if (send_back(src_addr, ethernet, arp) != 0)
@@ -126,16 +125,16 @@ int ft_malcolm(void)
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
 
-	if (g_data.opt & OPT_PROXY) {
+	if (g_data.opt & OPT_PROXY)
 		ft_proxy(g_data.source_ip, g_data.target_ip);
-		return 0;
-	}
-	printf("Sniffing ARP packets, press CTRL+C to exit...\n");
-	while (g_data.loop) {
-		ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,
-			(struct sockaddr *)&src_addr, &addr_len);
-		if (ret > 0 && handle_packet(src_addr, buffer))
-			break ;
+	else {
+		printf("Sniffing ARP packets, press CTRL+C to exit...\n");
+		while (g_data.loop) {
+			ret = recvfrom(g_data.sockfd, buffer, len, MSG_DONTWAIT,
+				(struct sockaddr *)&src_addr, &addr_len);
+			if (ret > 0 && handle_packet(src_addr, buffer))
+				break ;
+		}
 	}
 
 	close(g_data.sockfd);

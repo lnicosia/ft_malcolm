@@ -26,6 +26,8 @@
 #define IP_ADDR_LEN		4	/* in bytes */
 #define ETH_ADDR_LEN	6	/* in bytes */
 
+#define ARP_TIMEOUT		3	/* Seconds until we consider ARP request aborted (proxy mode) */
+
 /* Ethernet header */
 struct ethernet_hdr {
 	uint8_t		dmac[ETH_ADDR_LEN];	/* Destination mac address */
@@ -105,6 +107,11 @@ void		print_mac(uint8_t *mac);
 
 /* main.c */
 int			filter_out(uint8_t *tip, uint8_t *rip);
+
+/* interface.c */
+int			interface_index(char *name);
+int			interface_mac(char *name, uint8_t *ret);
+int			interface_ip(char *name, uint8_t *ret);
 
 /* help.c */
 void		print_help();

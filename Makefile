@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/02 17:35:44 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/03 17:46:51 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,8 @@ SRCS =	main.c \
 		print.c \
 		signal.c \
 		help.c \
-		proxy.c
+		proxy.c \
+		interface.c
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 

@@ -22,7 +22,9 @@ int		ft_atom(char *str, uint8_t *dest)
 		byte++;
 		tmp++;
 	}
-	printf("\n");
+	int i = 0;
+	while (split[i])
+		free(split[i++]);
 	free(split);
 	return 0;
 }
@@ -38,8 +40,6 @@ int		parse_mac(int *arg_count, char *arg)
 				g_data.source_ip[1] = ptr[1];
 				g_data.source_ip[2] = ptr[2];
 				g_data.source_ip[3] = ptr[3];
-				printf("Source ip = %s",
-						inet_ntoa(*(struct in_addr*)&g_data.source_ip));
 				(*arg_count)++;
 			break;
 			}
@@ -47,9 +47,6 @@ int		parse_mac(int *arg_count, char *arg)
 			{
 				if (ft_atom(arg, g_data.source_mac))
 					return 1;
-				printf("Source mac = ");
-				print_mac(g_data.source_mac);
-				printf("\n");
 				(*arg_count)++;
 				break;
 			}
@@ -61,8 +58,6 @@ int		parse_mac(int *arg_count, char *arg)
 				g_data.target_ip[1] = ptr[1];
 				g_data.target_ip[2] = ptr[2];
 				g_data.target_ip[3] = ptr[3];
-				printf("Target ip = %s",
-						inet_ntoa(*(struct in_addr*)&g_data.target_ip));
 				(*arg_count)++;
 				break;
 			}
@@ -70,9 +65,6 @@ int		parse_mac(int *arg_count, char *arg)
 			{
 				if (ft_atom(arg, g_data.target_mac))
 					return 1;
-				printf("Target mac = ");
-				print_mac(g_data.target_mac);
-				printf("\n");
 				(*arg_count)++;
 				break;
 			}

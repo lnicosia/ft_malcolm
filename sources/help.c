@@ -79,6 +79,37 @@ static void formatting()
 	);
 }
 
+static void proxy()
+{
+	printf("PROXY:\n"
+			"  -P --proxy [Source IP] [Target IP] -i [Interface]: Monitor/Proxy the communication between source and target host\n"
+			"  Proxy mode will send ARP requests to get MAC addresses for both hosts\n"
+			"  You must give only host's IPs when this option is active\n"
+			"  Specifying an interface is mandatory for this mode\n"
+			"  All the communication between those 2 hosts will pass through your machine\n"
+			"  Note that the -p --persistent option will be ignored when selecting this mode since persistency is active by default when proxying\n"
+	);
+}
+
+static void persistency()
+{
+	printf("PERSISTENCY:\n"
+			"  -p --persistent: Keep the spoofing alive\n"
+			"  By default, the program is only responding to ARP request once\n"
+			"  This option allows a persistent spoofing by resending ARP requests every 2 seconds (by default)\n"
+			"  The request rate can be changed with the option -f --frequency [time (in second)]\n"
+			"  Note that once the project will be validated, this option will be the default behavior\n"
+	);
+}
+
+static void misc()
+{
+	printf("MISC:\n"
+			"  -h --help: Display the help menu\n"
+			"  -V --version: Output the current version of this software\n"
+	);
+}
+
 void		print_help()
 {
 	/* Header with ascii art and usage */
@@ -90,6 +121,9 @@ void		print_help()
 	source_specification();
 	target_specification();
 	formatting();
+	persistency();
+	proxy();
+	misc();
 	examples();
 
 	/* Footer with version */

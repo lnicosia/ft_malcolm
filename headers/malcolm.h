@@ -20,7 +20,8 @@
 #define ONE_FILENAME "1.ascii"
 #define ASCII1 DB_PATH ONE_FILENAME
 /* ******* */
-#define TWO_FILENAME "2.ascii"
+/* TODO: Set 2.ascii once the snd art finished */
+#define TWO_FILENAME "1.ascii"
 #define ASCII2 DB_PATH TWO_FILENAME
 
 #define IP_ADDR_LEN		4	/* in bytes */

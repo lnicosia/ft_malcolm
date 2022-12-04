@@ -31,7 +31,10 @@ static void		print_random_art()
 
 void		print_version(void)
 {
-	printf("ft_malcolm version 1.0\n");
+	printf("lumenthi and lnicosia's ft_malcolm version 1.0 (https://github.com/lnicosia/ft_malcolm)\n"
+			"This program is free software; you may redistribute it\n"
+			"This program has absolutely no warranty\n"
+	);
 }
 
 void		print_usage(FILE *f)
@@ -52,6 +55,30 @@ static void examples()
 	);
 }
 
+static void source_specification()
+{
+	printf("SOURCE SPECIFICATION:\n"
+			"  Source IP is the IPv4 address of the host you wish to intercept packets for\n"
+			"  Source MAC is the hardware address of the host you wish to redirect packets to\n"
+	);
+}
+
+static void target_specification()
+{
+	printf("TARGET SPECIFICATION:\n"
+		"  Target IP is the IPv4 address of the host to poison\n"
+		"  Target MAC is the MAC address of the host to poison\n"
+	);
+}
+
+static void formatting()
+{
+	printf("FORMATTING:\n"
+			"  IPv4 addresses must be valid IPs under this format: 172.17.0.1\n"
+			"  Hardware addresses must be valid MACs under this format: 12:34:56:78:9a:bc\n"
+	);
+}
+
 void		print_help()
 {
 	/* Header with ascii art and usage */
@@ -60,6 +87,9 @@ void		print_help()
 	printf("\n");
 
 	/* Content */
+	source_specification();
+	target_specification();
+	formatting();
 	examples();
 
 	/* Footer with version */

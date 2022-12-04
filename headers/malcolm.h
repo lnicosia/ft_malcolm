@@ -105,8 +105,9 @@ void		debug_packet(struct ethernet_hdr *ethernet, struct arp_hdr *arp);
 void		print_ip(int fd, uint8_t *ip_address);
 void		print_mac(uint8_t *mac);
 
-/* main.c */
+/* malcolm.c */
 int			filter_out(uint8_t *tip, uint8_t *rip);
+int			ft_malcolm(void);
 
 /* interface.c */
 int			interface_index(char *name);

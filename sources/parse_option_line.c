@@ -86,8 +86,6 @@ int		parse_proxy(int *arg_count, char *arg)
 				g_data.source_ip[1] = ptr[1];
 				g_data.source_ip[2] = ptr[2];
 				g_data.source_ip[3] = ptr[3];
-				printf("Source ip = %s\n",
-						inet_ntoa(*(struct in_addr*)&g_data.source_ip));
 				(*arg_count)++;
 				break;
 			}
@@ -99,8 +97,6 @@ int		parse_proxy(int *arg_count, char *arg)
 				g_data.target_ip[1] = ptr[1];
 				g_data.target_ip[2] = ptr[2];
 				g_data.target_ip[3] = ptr[3];
-				printf("Target ip = %s\n",
-						inet_ntoa(*(struct in_addr*)&g_data.target_ip));
 				(*arg_count)++;
 				break;
 			}

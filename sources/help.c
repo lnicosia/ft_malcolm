@@ -84,10 +84,12 @@ static void proxy()
 	printf("PROXY:\n"
 			"  -P --proxy [Source IP] [Target IP] -i [Interface]: Monitor/Proxy the communication between source and target host\n"
 			"  Proxy mode will send ARP requests to get MAC addresses for both hosts\n"
-			"  You must give only host's IPs when this option is active\n"
+			"  You must only give IPv4 addresses when this option is active\n"
 			"  Specifying an interface is mandatory for this mode\n"
+			"  Select interface with the -i --interface [Interface] option\n"
 			"  All the communication between those 2 hosts will pass through your machine\n"
 			"  Note that the -p --persistent option will be ignored when selecting this mode since persistency is active by default when proxying\n"
+			"  At the end of the proxy process, ARP cache of targets will be reset so it will work normally again\n"
 	);
 }
 
@@ -102,11 +104,23 @@ static void persistency()
 	);
 }
 
+static void duration()
+{
+	printf("DURATION:\n"
+			"  -d --duration [time (in seconds)]: Duration of the spoofing process\n"
+			"  Note that his option will be taken in consideration only when the -P --proxy mode or -p --persistent mode is selected\n"
+	);
+}
+
 static void misc()
 {
 	printf("MISC:\n"
+			"  -i --interface [Interface Name]: Select the interface to use, only works with proxy mode\n"
+			"  -f --frequency [Time]: Select (in seconds) the rate for ARP replies in --persistent and --proxy mode\n"
+			"  -v --verbose: Displays informations about what ft_malcolm is doing\n"
 			"  -h --help: Display the help menu\n"
 			"  -V --version: Output the current version of this software\n"
+			"  ft_malcolm requires root's privileges in order to open raw sockets\n"
 	);
 }
 
@@ -122,6 +136,7 @@ void		print_help()
 	target_specification();
 	formatting();
 	persistency();
+	duration();
 	proxy();
 	misc();
 	examples();

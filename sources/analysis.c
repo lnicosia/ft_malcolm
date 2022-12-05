@@ -4,9 +4,7 @@ static int sniff_traffic(void *osef)
 {
 	/* TODO: Verbose */
 	(void)osef;
-	int tcpfd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
-	int udpfd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
-	int icmpfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	int l2fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 
 	int len = 65535;
 	char buffer[len];
@@ -16,34 +14,19 @@ static int sniff_traffic(void *osef)
 
 	ft_bzero(buffer, len);
 
-	if (tcpfd < 0)
-		fprintf(stderr, "[!] Failed to open TCP socket\n");
-	if (udpfd < 0)
-		fprintf(stderr, "[!] Failed to open UDP socket\n");
-	if (icmpfd < 0)
-		fprintf(stderr, "[!] Failed to open ICMP socket\n");
+	if (l2fd < 0)
+		fprintf(stderr, "[!] Failed to open layer 2 socket\n");
 
 	while (g_data.loop) {
-		ret = recvfrom(tcpfd, buffer, len, MSG_DONTWAIT,
+		ret = recvfrom(l2fd, buffer, len, MSG_DONTWAIT,
 			(struct sockaddr *)&src_addr, &addr_len);
 		if (ret > 0) {
 			ft_bzero(buffer, len);
-		}
-		ret = recvfrom(udpfd, buffer, len, MSG_DONTWAIT,
-			(struct sockaddr *)&src_addr, &addr_len);
-		if (ret > 0) {
-			ft_bzero(buffer, len);
-		}
-		ret = recvfrom(icmpfd, buffer, len, MSG_DONTWAIT,
-			(struct sockaddr *)&src_addr, &addr_len);
-		if (ret > 0) {
-			ft_bzero(buffer, len);
+			printf("\rRECEIVED      \n");
 		}
 	}
 
-	close(tcpfd);
-	close(udpfd);
-	close(icmpfd);
+	close(l2fd);
 
 	return 0;
 }

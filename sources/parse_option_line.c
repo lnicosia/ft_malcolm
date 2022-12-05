@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int		ft_atom(char *str, uint8_t *dest)
+static int		ft_atom(char *str, uint8_t *dest)
 {
 	char **split = ft_strsplit(str, ':');
 	if (!split) {
@@ -18,6 +18,11 @@ int		ft_atom(char *str, uint8_t *dest)
 			free(split);
 			return 1;
 		}
+		int j = 0;
+		while ((*tmp)[j]) {
+			(*tmp)[j] = ft_toupper((*tmp)[j]);
+			j++;
+		}
 		dest[byte] = ft_atoi_base(*tmp, "0123456789ABCDEF");
 		byte++;
 		tmp++;
@@ -29,7 +34,7 @@ int		ft_atom(char *str, uint8_t *dest)
 	return 0;
 }
 
-static int is_fqdn(char *address)
+static int		is_fqdn(char *address)
 {
 	int i = 0;
 	while (address[i]) {
@@ -40,7 +45,7 @@ static int is_fqdn(char *address)
 	return 0;
 }
 
-int		parse_mac(int *arg_count, char *arg)
+static int		parse_mac(int *arg_count, char *arg)
 {
 	switch (*arg_count) {
 		case 0:
@@ -100,7 +105,7 @@ int		parse_mac(int *arg_count, char *arg)
 	return 0;
 }
 
-int		parse_proxy(int *arg_count, char *arg)
+static int		parse_proxy(int *arg_count, char *arg)
 {
 	switch (*arg_count) {
 		case 0:
@@ -180,7 +185,7 @@ int		parse_option_line(int ac, char **av)
 				break;
 			case 'P':
 				g_data.opt |= OPT_PROXY;
-				g_data.opt &= ~OPT_PERSISTENT;
+				g_data.opt |= OPT_PERSISTENT;
 				break;
 			case 'v':
 				g_data.opt |= OPT_VERBOSE;

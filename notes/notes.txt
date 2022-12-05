@@ -56,4 +56,5 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 		- -d --deny Service denial ? redirect all the packets to a dummy mac address
 - -m --manual: Subject's behavior with persistency mode activated
 - Packet analysis in another thread ?
+- WIFI support
 - Update version and help menu once done

@@ -109,7 +109,7 @@ void		print_ip(int fd, uint8_t *ip_address);
 void		print_mac(uint8_t *mac);
 
 /* malcolm.c */
-int			filter_out(uint8_t *tip, uint8_t *rip);
+int			filter_out(uint8_t *tip, uint8_t *rip, int len);
 int			ft_malcolm(void);
 
 /* interface.c */

@@ -105,6 +105,44 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 	return 0;
 }
 
+static void show_resume()
+{
+	printf("======SUMMARY======\n");
+
+	/* Source IP */
+	dprintf(STDOUT_FILENO, "Source ip: ");
+	print_ip(STDOUT_FILENO, g_data.source_ip);
+	dprintf(STDOUT_FILENO, "\n");
+	/* Source MAC */
+	printf("Source mac: ");
+	print_mac(g_data.source_mac);
+	printf("\n");
+
+	/* Target IP */
+	dprintf(STDOUT_FILENO, "Target ip: ");
+	print_ip(STDOUT_FILENO, g_data.target_ip);
+	dprintf(STDOUT_FILENO, "\n");
+	/* Target MAC */
+	printf("Target mac: ");
+	print_mac(g_data.target_mac);
+	printf("\n");
+
+	/* Options */
+	printf("Mode: %s\n", g_data.opt & OPT_PROXY ? "PROXY":"SPOOFING");
+	printf("Persistent: %s\n", g_data.opt & OPT_PERSISTENT ? "YES":"NO");
+	printf("Delay: ");
+	g_data.opt & OPT_PERSISTENT ? printf("%d second(s)\n",g_data.frequency):printf("NONE\n");
+	printf("Duration: ");
+	if (g_data.opt & OPT_PERSISTENT)
+		g_data.opt & OPT_DURATION ? printf("%d second(s)\n",g_data.duration):printf("UNDEFINED\n");
+	else
+		printf("NONE (only when persistency is active)\n");
+	printf("Interface: %s\n", g_data.opt & OPT_INTERFACE ? g_data.interface:"NONE");
+	printf("Numeric mode: %s\n", g_data.opt & OPT_NUMERIC ? "TRUE":"FALSE");
+	printf("Verbose: %s\n", g_data.opt & OPT_VERBOSE ? "TRUE":"FALSE");
+	printf("===================\n");
+}
+
 int ft_malcolm(void)
 {
 	int len = sizeof(struct ethernet_hdr) + sizeof(struct arp_hdr);
@@ -122,6 +160,9 @@ int ft_malcolm(void)
 	/* Initializing signal handler */
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
+
+	if (g_data.opt & OPT_VERBOSE)
+		show_resume();
 
 	if (g_data.opt & OPT_PROXY)
 		ft_proxy(g_data.source_ip, g_data.target_ip);

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int		ft_atom(char *str, uint8_t *dest)
+static int		ft_atom(char *str, uint8_t *dest)
 {
 	char **split = ft_strsplit(str, ':');
 	if (!split) {
@@ -29,7 +29,7 @@ int		ft_atom(char *str, uint8_t *dest)
 	return 0;
 }
 
-int		parse_mac(int *arg_count, char *arg)
+static int		parse_mac(int *arg_count, char *arg)
 {
 	switch (*arg_count) {
 		case 0:
@@ -75,7 +75,7 @@ int		parse_mac(int *arg_count, char *arg)
 	return 0;
 }
 
-int		parse_proxy(int *arg_count, char *arg)
+static int		parse_proxy(int *arg_count, char *arg)
 {
 	switch (*arg_count) {
 		case 0:
@@ -141,7 +141,7 @@ int		parse_option_line(int ac, char **av)
 				break;
 			case 'P':
 				g_data.opt |= OPT_PROXY;
-				g_data.opt &= ~OPT_PERSISTENT;
+				g_data.opt |= OPT_PERSISTENT;
 				break;
 			case 'v':
 				g_data.opt |= OPT_VERBOSE;

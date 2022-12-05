@@ -16,9 +16,6 @@ void  inthandler(int sig)
 			printf("\b\b  ");
 	}
 	else if (sig == SIGALRM) {
-		if (g_data.opt & OPT_VERBOSE)
-			printf("\n[*] Reached the end of selected duration (%d second(s))\n",
-				g_data.duration);
 	}
 	printf("\b \rQUITTING!\n");
 }

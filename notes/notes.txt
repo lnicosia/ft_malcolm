@@ -59,4 +59,5 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 - -m --manual: Subject's behavior with persistency mode activated
 - Packet analysis in another thread ?
 - WIFI support
+- Restore for manual persistent mode ?
 - Update version and help menu once done

@@ -30,7 +30,7 @@ int		resolve_hostname(char *hostname, uint8_t *dest_ip)
 		if (tmp->ai_family == AF_INET)
 		{
 			struct sockaddr_in *ip4 = (struct sockaddr_in*)tmp->ai_addr;
-			ft_memcpy(dest_ip, &ip4->sin_addr, sizeof(*ip4));
+			ft_memcpy(dest_ip, &ip4->sin_addr, sizeof(ip4->sin_addr));
 			break;
 		}
 		else if (tmp->ai_family == AF_INET6)

@@ -6,14 +6,14 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/01 10:53:16 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/04 12:34:46 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_malcolm
 
 CC = gcc
-FLAGS = -Wall -Werror -Wextra -O3 -flto
+FLAGS = -Wall -Werror -Wextra -g
 LDFLAGS =
 
 GREEN = '\033[4;32m'
@@ -47,7 +47,8 @@ LIBFT = $(LIBDIR)/libft.a
 
 ###### HEADERS ######
 
-HEADS = malcolm.h
+HEADS = malcolm.h \
+		options.h
 HEADERS = $(addprefix $(HEADDIR)/, $(HEADS))
 
 #####################
@@ -57,7 +58,11 @@ HEADERS = $(addprefix $(HEADDIR)/, $(HEADS))
 SRCS =	main.c \
 		parse_option_line.c \
 		print.c \
-		signal.c
+		signal.c \
+		help.c \
+		proxy.c \
+		interface.c \
+		malcolm.c
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 
@@ -149,6 +154,6 @@ todo:
 
 run:
 	@ $(MAKE) all
-	@ sudo ./$(NAME)
+	@ sudo ./$(NAME) 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02
 
 .PHONY: all clean fclean re todo run

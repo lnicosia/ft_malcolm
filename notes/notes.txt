@@ -20,10 +20,42 @@ sudo docker start malcolm2 && sudo docker exec -it 7897dbca677e /bin/bash
 # Install arpspoof
 $ sudo apt-get install dsniff
 
+# Netcat listen
+netcat -l 4444
+
+# Netcat connect
+netcat 172.17.0.1 4444
+
+# TCP dump listen for netcat communication
+tcpdump -s 0 -U -n -w - -i eth0
+
 # Check arp cache
 $ ip neighbor
 
+# Copy a file into container
+sudo docker cp ./ft_malcolm 8d4d4b6235c7:/
+
+# Loop check ARP cache
+while true; do ip n | grep "66:66"; done
+
 # Docker needed installs
 apt-get update
-apt-get install iputils-ping iproute2 net-tools curl wget zsh git -y
+apt-get install tcpdump iputils-ping iproute2 net-tools arping curl wget zsh git -y
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -
+
+# ==== TODO ====
+- Host resolution
+- Verbose
+- CTRL+C on proxy mode leaves a character displayed
+- UID check [DONE]
+
+# ==== IDEAS ====
+(After validation)
+- Proxy mode by default
+- Spoof the whole network on broadcast -b --broadcast
+	- sudo ./ft_malcolm [source IP] -i [interface] --broadcast
+		- This command redirect all the traffic for the whole network to [source IP] on our machine
+		- -d --deny Service denial ? redirect all the packets to a dummy mac address
+- -m --manual: Subject's behavior with persistency mode activated
+- Packet analysis in another thread ?
+- Update version and help menu once done

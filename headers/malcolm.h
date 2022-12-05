@@ -77,8 +77,10 @@ typedef struct	s_data
 {
 	uint8_t		source_ip[4];
 	uint8_t		source_mac[6];
+	char		*source_hostname;
 	uint8_t		target_ip[4];
 	uint8_t		target_mac[6];
+	char		*target_hostname;
 
 	uint8_t		loop;
 	uint64_t	opt;
@@ -125,5 +127,9 @@ int			parse_option_line(int ac, char **av);
 
 /* proxy.c */
 int			ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
+
+/* resolve_hostname.c */
+
+int			resolve_hostname(char *hostname, uint8_t *dest_ip);
 
 #endif

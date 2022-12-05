@@ -1,20 +1,36 @@
 #include "../headers/malcolm.h"
 #include <netdb.h>
+#include <limits.h>
 
-void print_ip(int fd, uint8_t *ip_address)
+/* TODO: Uncomment after the defense */
+/* void print_ip(int fd, uint8_t *ip_address)
 {
-	static char	host[512];
-	struct sockaddr_in	addr;
+	char host[HOST_NAME_MAX];
+	struct sockaddr_in addr;
 
 	ft_bzero(host, sizeof(host));
 	ft_bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
 	ft_memcpy(&addr.sin_addr, ip_address, sizeof(addr.sin_addr));
 	if (getnameinfo((struct sockaddr*)&addr, sizeof(struct sockaddr),
-			host, sizeof(host), NULL, 0, 0))
-		dprintf(fd, "%s", inet_ntoa(addr.sin_addr));
-	else
+		host, sizeof(host), NULL, 0, 0) == 0 &&
+		ft_strcmp(host, inet_ntoa(addr.sin_addr)) != 0) {
 		dprintf(fd, "%s (%s)", host, inet_ntoa(addr.sin_addr));
+	}
+	else
+		dprintf(fd, "%s", inet_ntoa(addr.sin_addr));
+} */
+
+void print_ip(int fd, uint8_t *ip_address)
+{
+	int i = 0;
+
+	while (i < IP_ADDR_LEN) {
+		dprintf(fd, "%d", ip_address[i]);
+		if (i < IP_ADDR_LEN-1)
+			dprintf(fd, ".");
+		i++;
+	}
 }
 
 void print_mac(uint8_t *mac)

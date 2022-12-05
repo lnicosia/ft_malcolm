@@ -32,18 +32,18 @@ static int send_back(struct sockaddr_ll src_addr, struct ethernet_hdr *ethernet,
 	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&src_addr, addr_len);
 
+	if (ret <= 0) {
+		fprintf(stderr, "[!] Failed to send arp reply to ");
+		print_ip(STDERR_FILENO, packet.arp.tip);
+		fprintf(stderr, "\n");
+		return -1;
+	}
+
 	if (g_data.opt & OPT_VERBOSE) {
 		printf("\n[*] Sent %d byte(s) to ", ret);
 		print_mac(packet.arp.tha);
 		fflush(stdout);
 		printf("\n");
-	}
-
-	if (ret == -1) {
-		fprintf(stderr, "[!] Failed to send arp reply to ");
-		print_ip(STDERR_FILENO, packet.arp.tip);
-		fprintf(stderr, "\n");
-		return -1;
 	}
 
 	return 0;
@@ -68,6 +68,7 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 	uint16_t type;
 	uint16_t opcode;
 	struct timespec wait = {g_data.frequency, 0};
+	uint64_t i = 0;
 
 	ethernet = (struct ethernet_hdr *)buffer;
 	arp = (struct arp_hdr *)(buffer + sizeof(struct ethernet_hdr));
@@ -100,10 +101,6 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 			alarm(g_data.duration);
 		}
 
-		uint8_t wait_loop_len = 4;
-		char *wait_loop = "/-\\-";
-		uint64_t i = 0;
-
 		while (g_data.loop) {
 			if (send_back(src_addr, ethernet, arp) != 0)
 				break;
@@ -114,7 +111,7 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 			ft_putchar('\r');
 			printf("Spoofing ");
 			fflush(stdout);
-			ft_putchar(wait_loop[i % wait_loop_len]);
+			ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
 			i++;
 			if (g_data.opt & OPT_VERBOSE)
 				printf("\n[*] Waiting %d seconds\n", g_data.frequency);

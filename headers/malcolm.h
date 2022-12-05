@@ -85,6 +85,10 @@ typedef struct	s_data
 	uint8_t		loop;
 	uint64_t	opt;
 
+	/* Display related */
+	uint8_t		wait_loop_len;
+	char		*wait_loop;
+
 	int			sockfd;
 	char		*interface;
 

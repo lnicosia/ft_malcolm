@@ -174,6 +174,8 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	uint8_t if_ip[IP_ADDR_LEN] = {0};
 	struct timespec wait = {g_data.frequency, 0};
 	uint64_t i = 0;
+	int tret;
+	pthread_t thread;
 
 	ft_bzero(&sockaddr, sizeof(struct sockaddr_ll));
 
@@ -221,6 +223,9 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Starting the spoof process\n");
 
+	/* LISTEN THREAD INIT */
+	tret = launch_thread(&thread);
+
 	while (g_data.loop) {
 		if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
 			sockaddr)) != 0 ||
@@ -241,6 +246,11 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 			printf("\n[*] Waiting %d seconds\n", g_data.frequency);
 		clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 	}
+
+	/* CLOSE LISTEN THREAD */
+	int *retval;
+	if (!tret && pthread_join(thread, (void**)&retval) != 0)
+		fprintf(stderr, "[!] Failed to close thread\n");
 
 	/* Restore ARP cache for targets */
 	printf("Restoring ARP cache for targets\n");

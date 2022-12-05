@@ -44,8 +44,20 @@ apt-get install tcpdump iputils-ping iproute2 net-tools arping curl wget zsh git
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -
 
 # ==== TODO ====
-- Host resolution
+- LNICOSIA ASCII MENU
+
+# ==== BONUSES ====
+- Persistency
+- Frequency
+- Duration
+- Proxy
 - Verbose
+- Help menu
+- Hostname resolution
+- Auto ARP resolution for proxy mode
+- Interface selection
+- Awesome rotative insane art menu created by insane devs
+- Awesome packet printing
 
 # ==== IDEAS ====
 (After validation)

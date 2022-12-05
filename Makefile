@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/05 10:59:03 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/05 19:19:44 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = ft_malcolm
 
 CC = gcc
 FLAGS = -Wall -Werror -Wextra -g
-LDFLAGS =
+LDFLAGS = -lpthread
 
 GREEN = '\033[4;32m'
 RED = '\033[4;31m'
@@ -64,6 +64,7 @@ SRCS =	main.c \
 		interface.c \
 		malcolm.c \
 		resolve_hostname.c \
+		analysis.c
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 

@@ -204,6 +204,7 @@ int ft_malcolm(void)
 
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Closing sockfd\n");
+
 	close(g_data.sockfd);
 	return 0;
 }

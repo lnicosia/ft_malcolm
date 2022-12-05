@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <pthread.h>
 
 /* ASCII ART */
 #define DB_PATH "ascii/"
@@ -132,8 +133,10 @@ int			parse_option_line(int ac, char **av);
 /* proxy.c */
 int			ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
 
-/* resolve_hostname.c */
+/* analysis.c */
+int			launch_thread(pthread_t *thread);
 
+/* resolve_hostname.c */
 int			resolve_hostname(char *hostname, uint8_t *dest_ip);
 
 #endif

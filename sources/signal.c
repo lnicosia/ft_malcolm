@@ -10,5 +10,5 @@ void  inthandler(int sig)
 
 	if (sig == SIGINT)
 		printf("\b\b  ");
-	printf("\b \rQUITTING!\n");
+	printf("\b \rQUITTING! \n");
 }

@@ -1,4 +1,25 @@
 #include "../headers/malcolm.h"
+#include <netdb.h>
+#include <limits.h>
+
+/* TODO: Uncomment after the defense */
+/* void print_ip(int fd, uint8_t *ip_address)
+{
+	char host[HOST_NAME_MAX];
+	struct sockaddr_in addr;
+
+	ft_bzero(host, sizeof(host));
+	ft_bzero(&addr, sizeof(addr));
+	addr.sin_family = AF_INET;
+	ft_memcpy(&addr.sin_addr, ip_address, sizeof(addr.sin_addr));
+	if (getnameinfo((struct sockaddr*)&addr, sizeof(struct sockaddr),
+		host, sizeof(host), NULL, 0, 0) == 0 &&
+		ft_strcmp(host, inet_ntoa(addr.sin_addr)) != 0) {
+		dprintf(fd, "%s (%s)", host, inet_ntoa(addr.sin_addr));
+	}
+	else
+		dprintf(fd, "%s", inet_ntoa(addr.sin_addr));
+} */
 
 void print_ip(int fd, uint8_t *ip_address)
 {

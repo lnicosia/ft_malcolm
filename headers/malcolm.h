@@ -77,11 +77,17 @@ typedef struct	s_data
 {
 	uint8_t		source_ip[4];
 	uint8_t		source_mac[6];
+	char		*source_hostname;
 	uint8_t		target_ip[4];
 	uint8_t		target_mac[6];
+	char		*target_hostname;
 
 	uint8_t		loop;
 	uint64_t	opt;
+
+	/* Display related */
+	uint8_t		wait_loop_len;
+	char		*wait_loop;
 
 	int			sockfd;
 	char		*interface;
@@ -107,7 +113,7 @@ void		print_ip(int fd, uint8_t *ip_address);
 void		print_mac(uint8_t *mac);
 
 /* malcolm.c */
-int			filter_out(uint8_t *tip, uint8_t *rip);
+int			filter_out(uint8_t *tip, uint8_t *rip, int len);
 int			ft_malcolm(void);
 
 /* interface.c */
@@ -125,5 +131,9 @@ int			parse_option_line(int ac, char **av);
 
 /* proxy.c */
 int			ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
+
+/* resolve_hostname.c */
+
+int			resolve_hostname(char *hostname, uint8_t *dest_ip);
 
 #endif

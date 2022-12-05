@@ -1,4 +1,5 @@
 #include "../headers/malcolm.h"
+#include "../headers/options.h"
 
 /* Control-C */
 void  inthandler(int sig)
@@ -8,7 +9,13 @@ void  inthandler(int sig)
 	/* Restoring old MAC */
 	/* TODO: Must not restore by default (subject restriction) */
 
-	if (sig == SIGINT)
-		printf("\b\b  ");
-	printf("\b \rQUITTING!\n");
+	if (sig == SIGINT) {
+		if (g_data.opt & OPT_VERBOSE)
+			printf("\n[*] CTRL+C Pressed\n");
+		else
+			printf("\b\b  ");
+	}
+	else if (sig == SIGALRM) {
+	}
+	printf("\b \rQUITTING! \n");
 }

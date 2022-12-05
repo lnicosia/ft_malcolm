@@ -1,4 +1,5 @@
 #include "../headers/malcolm.h"
+#include "../headers/options.h"
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <linux/if_arp.h>
@@ -16,16 +17,25 @@ static int handle_response(uint8_t *ip, char *buffer, uint8_t *received_mac)
 	type = ft_ntohs(ethernet->type);
 	opcode = ft_ntohs(arp->op);
 
+	if (g_data.opt & OPT_VERBOSE) {
+		dprintf(STDOUT_FILENO, "[*] Received packet from ");
+		print_ip(STDOUT_FILENO, arp->sip);
+		dprintf(STDOUT_FILENO, " expecting ");
+		print_ip(STDOUT_FILENO, ip);
+		dprintf(STDOUT_FILENO, "\n");
+		/* debug_packet(ethernet, arp); */
+	}
+
 	if (type == ETH_P_ARP && opcode == ARP_REPLY &&
-		!filter_out(ip, arp->sip)) {
+		!filter_out(ip, arp->sip, IP_ADDR_LEN))
+	{
+		if (g_data.opt & OPT_VERBOSE)
+			printf("[*] Valid ARP reply\n");
 		ft_memcpy(received_mac, arp->sha, ETH_ADDR_LEN);
 		return 1;
 	}
-	else {
-		dprintf(STDOUT_FILENO, "Filtering reply from ");
-		print_ip(STDOUT_FILENO, arp->sip);
-		dprintf(STDOUT_FILENO, "\n");
-	}
+	else if (g_data.opt & OPT_VERBOSE)
+		dprintf(STDOUT_FILENO, "[*] Filtering request\n");
 
 	return 0;
 }
@@ -69,6 +79,14 @@ static int spoof(uint8_t *tip, uint8_t *tmac, uint8_t *sip, uint8_t *smac,
 		return 1;
 	}
 
+	if (g_data.opt & OPT_VERBOSE) {
+		printf("[*] Sent %d byte(s) to ", ret);
+		print_mac(packet.arp.tha);
+		fflush(stdout);
+		printf("\n");
+		fflush(stdout);
+	}
+
 	return 0;
 }
 
@@ -104,6 +122,13 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 	ft_memcpy(packet.arp.tip, tip, IP_ADDR_LEN);
 
 	/* debug_packet(&packet.ethernet, &packet.arp); */
+
+	if (g_data.opt & OPT_VERBOSE) {
+		dprintf(STDERR_FILENO, "[*] Sending ARP request to the broadcast for ");
+		print_ip(STDOUT_FILENO, tip);
+		fflush(stdout);
+		printf("\n");
+	}
 
 	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&sockaddr, addr_len);
@@ -148,10 +173,13 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	uint8_t if_mac[ETH_ADDR_LEN] = {0};
 	uint8_t if_ip[IP_ADDR_LEN] = {0};
 	struct timespec wait = {g_data.frequency, 0};
+	uint64_t i = 0;
 
 	ft_bzero(&sockaddr, sizeof(struct sockaddr_ll));
 
 	/* Getting interface informations */
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Getting informations about interface %s\n", g_data.interface);
 	if ((if_idx = interface_index(g_data.interface)) < 0)
 		return 1;
 	if (interface_mac(g_data.interface, if_mac) < 0)
@@ -159,13 +187,14 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	if (interface_ip(g_data.interface, if_ip) < 0)
 		return 1;
 
-	/* Debug prints */
-	/* printf("%s has index %d with MAC address ", g_data.interface, if_idx);
-	print_mac(if_mac);
-	printf(" and IP address ");
-	fflush(stdout);
-	print_ip(STDOUT_FILENO, if_ip);
-	printf("\n"); */
+	if (g_data.opt & OPT_VERBOSE) {
+		printf("[*] %s has index %d with MAC address ", g_data.interface, if_idx);
+		print_mac(if_mac);
+		printf(" and IP address ");
+		fflush(stdout);
+		print_ip(STDOUT_FILENO, if_ip);
+		printf("\n");
+	}
 
 	/* Filling sockaddr_ll */
 	sockaddr.sll_family = AF_PACKET;
@@ -189,9 +218,8 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	}
 	dprintf(STDOUT_FILENO, "\n");
 
-	uint8_t wait_loop_len = 4;
-	char *wait_loop = "/|\\|";
-	uint64_t i = 0;
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Starting the spoof process\n");
 
 	while (g_data.loop) {
 		if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
@@ -206,9 +234,11 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		ft_putchar('\r');
 		printf("Spoofing ");
 		fflush(stdout);
-		ft_putchar(wait_loop[i % wait_loop_len]);
+		ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
 		i++;
 
+		if (g_data.opt & OPT_VERBOSE)
+			printf("\n[*] Waiting %d seconds\n", g_data.frequency);
 		clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 	}
 

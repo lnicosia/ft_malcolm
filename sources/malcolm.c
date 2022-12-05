@@ -32,6 +32,13 @@ static int send_back(struct sockaddr_ll src_addr, struct ethernet_hdr *ethernet,
 	ret = sendto(g_data.sockfd, &packet, sizeof(struct arp_packet), 0,
 		(struct sockaddr *)&src_addr, addr_len);
 
+	if (g_data.opt & OPT_VERBOSE) {
+		printf("\n[*] Sent %d byte(s) to ", ret);
+		print_mac(packet.arp.tha);
+		fflush(stdout);
+		printf("\n");
+	}
+
 	if (ret == -1) {
 		fprintf(stderr, "[!] Failed to send arp reply to ");
 		print_ip(STDERR_FILENO, packet.arp.tip);
@@ -109,8 +116,12 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 			fflush(stdout);
 			ft_putchar(wait_loop[i % wait_loop_len]);
 			i++;
+			if (g_data.opt & OPT_VERBOSE)
+				printf("\n[*] Waiting %d seconds\n", g_data.frequency);
 			clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 		}
+		if (g_data.opt & OPT_VERBOSE)
+			printf("[*] Leaving the spoof process\n");
 		return 1;
 	}
 	else if (g_data.opt & OPT_VERBOSE)
@@ -194,6 +205,8 @@ int ft_malcolm(void)
 		}
 	}
 
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Closing sockfd\n");
 	close(g_data.sockfd);
 	return 0;
 }

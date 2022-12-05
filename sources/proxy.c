@@ -17,7 +17,7 @@ static int handle_response(uint8_t *ip, char *buffer, uint8_t *received_mac)
 	opcode = ft_ntohs(arp->op);
 
 	if (type == ETH_P_ARP && opcode == ARP_REPLY &&
-		!filter_out(ip, arp->sip)) {
+		!filter_out(ip, arp->sip, IP_ADDR_LEN)) {
 		ft_memcpy(received_mac, arp->sha, ETH_ADDR_LEN);
 		return 1;
 	}

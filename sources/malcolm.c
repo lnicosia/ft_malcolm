@@ -42,10 +42,10 @@ static int send_back(struct sockaddr_ll src_addr, struct ethernet_hdr *ethernet,
 	return 0;
 }
 
-int filter_out(uint8_t *tip, uint8_t *rip)
+int filter_out(uint8_t *tip, uint8_t *rip, int len)
 {
 	int i = 0;
-	while (i < IP_ADDR_LEN) {
+	while (i < len) {
 		if (tip[i] != rip[i])
 			return 1;
 		i++;
@@ -68,9 +68,26 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 	type = ft_ntohs(ethernet->type);
 	opcode = ft_ntohs(arp->op);
 
+	if (g_data.opt & OPT_VERBOSE) {
+		dprintf(STDOUT_FILENO, "[*] Received packet from ");
+		print_ip(STDOUT_FILENO, arp->sip);
+		dprintf(STDOUT_FILENO, " ");
+		print_mac(arp->sha);
+		fflush(stdout);
+		dprintf(STDOUT_FILENO, " expecting ");
+		print_ip(STDOUT_FILENO, g_data.target_ip);
+		dprintf(STDOUT_FILENO, " ");
+		print_mac(g_data.target_mac);
+		fflush(stdout);
+		dprintf(STDOUT_FILENO, "\n");
+		/* debug_packet(ethernet, arp); */
+	}
+
 	if (type == ETH_P_ARP && opcode == ARP_REQUEST &&
-		!filter_out(g_data.target_ip, arp->sip)) {
-		debug_packet(ethernet, arp);
+		!filter_out(g_data.target_ip, arp->sip, IP_ADDR_LEN) &&
+		!filter_out(g_data.target_mac, arp->sha, ETH_ADDR_LEN)) {
+		if (g_data.opt & OPT_VERBOSE)
+			printf("[*] Valid ARP request, starting the spoofing process\n");
 		if (g_data.duration) {
 			printf("Spoofing the target for %d seconds\n", g_data.duration);
 			alarm(g_data.duration);
@@ -84,7 +101,7 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 			if (send_back(src_addr, ethernet, arp) != 0)
 				break;
 			if (!(g_data.opt & OPT_PERSISTENT) && !(g_data.opt & OPT_PROXY)) {
-				printf("Spoofed, exiting\n");
+				printf("Spoofed the target, exiting\n");
 				break;
 			}
 			ft_putchar('\r');
@@ -96,11 +113,8 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 		}
 		return 1;
 	}
-	else {
-		dprintf(STDOUT_FILENO, "Filtering request from ");
-		print_ip(STDOUT_FILENO, arp->sip);
-		dprintf(STDOUT_FILENO, "\n");
-	}
+	else if (g_data.opt & OPT_VERBOSE)
+		dprintf(STDOUT_FILENO, "[*] Filtering request\n");
 
 	return 0;
 }
@@ -151,6 +165,11 @@ int ft_malcolm(void)
 	struct sockaddr_ll src_addr;
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 
+	if (g_data.opt & OPT_VERBOSE)
+		show_resume();
+
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Creating AF_PACKET socket\n");
 	/* Socket creation */
 	if ((g_data.sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0) {
 		fprintf(stderr, "[!] Failed to create socket\n");
@@ -158,11 +177,10 @@ int ft_malcolm(void)
 	}
 
 	/* Initializing signal handler */
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Initializing signals handler\n");
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
-
-	if (g_data.opt & OPT_VERBOSE)
-		show_resume();
 
 	if (g_data.opt & OPT_PROXY)
 		ft_proxy(g_data.source_ip, g_data.target_ip);

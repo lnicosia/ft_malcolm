@@ -18,6 +18,11 @@ static int		ft_atom(char *str, uint8_t *dest)
 			free(split);
 			return 1;
 		}
+		int j = 0;
+		while ((*tmp)[j]) {
+			(*tmp)[j] = ft_toupper((*tmp)[j]);
+			j++;
+		}
 		dest[byte] = ft_atoi_base(*tmp, "0123456789ABCDEF");
 		byte++;
 		tmp++;

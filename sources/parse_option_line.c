@@ -247,11 +247,5 @@ int		parse_option_line(int ac, char **av)
 		print_usage(stderr);
 		return 1;
 	}
-	dprintf(STDOUT_FILENO, "Source = %s (", g_data.source_hostname);
-	print_ip(STDOUT_FILENO, g_data.source_ip);
-	dprintf(STDOUT_FILENO, ")\n");
-	dprintf(STDOUT_FILENO, "Target = %s (", g_data.target_hostname);
-	print_ip(STDOUT_FILENO, g_data.target_ip);
-	dprintf(STDOUT_FILENO, ")\n");
 	return 0;
 }

@@ -104,7 +104,7 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 		while (g_data.loop) {
 			if (send_back(src_addr, ethernet, arp) != 0)
 				break;
-			if (!(g_data.opt & OPT_PERSISTENT) && !(g_data.opt & OPT_PROXY)) {
+			if (g_data.opt & OPT_NO_PERSISTENCY) {
 				printf("Spoofed the target, exiting\n");
 				break;
 			}
@@ -151,11 +151,11 @@ static void show_resume()
 
 	/* Options */
 	printf("Mode: %s\n", g_data.opt & OPT_PROXY ? "PROXY":"SPOOFING");
-	printf("Persistent: %s\n", g_data.opt & OPT_PERSISTENT ? "YES":"NO");
+	printf("Persistent: %s\n", g_data.opt & OPT_NO_PERSISTENCY ? "NO":"YES");
 	printf("Delay: ");
-	g_data.opt & OPT_PERSISTENT ? printf("%d second(s)\n",g_data.frequency):printf("NONE\n");
+	g_data.opt & OPT_NO_PERSISTENCY ? printf("NONE\n"):printf("%d second(s)\n",g_data.frequency);
 	printf("Duration: ");
-	if (g_data.opt & OPT_PERSISTENT)
+	if (!(g_data.opt & OPT_NO_PERSISTENCY))
 		g_data.opt & OPT_DURATION ? printf("%d second(s)\n",g_data.duration):printf("UNDEFINED\n");
 	else
 		printf("NONE (only when persistency is active)\n");

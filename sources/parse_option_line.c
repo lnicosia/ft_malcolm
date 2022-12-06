@@ -155,23 +155,25 @@ int		parse_option_line(int ac, char **av)
 {
 	int	opt, option_index = 0;
 	char		*optarg = NULL;
-	const char	*optstring = "hVpvPnd:f:i:";
+	const char	*optstring = "hVvPnd:f:i:";
 	static struct option long_options[] = {
-		{"help",		0,					0, 'h'},
-		{"version",		0,					0, 'V'},
-		{"proxy",		0,					0, 'P'},
-		{"verbose",		0,					0, 'v'},
-		{"persistent",	0,					0, 'p'},
-		{"numeric",		0,					0, 'n'},
-		{"duration",	required_argument,	0, 'd'},
-		{"frequency",	required_argument,	0, 'f'},
-		{"interface",	required_argument,	0, 'i'},
-		{0,				0,					0, 0}
+		{"help",			0,					0, 'h'},
+		{"version",			0,					0, 'V'},
+		{"proxy",			0,					0, 'P'},
+		{"verbose",			0,					0, 'v'},
+		{"numeric",			0,					0, 'n'},
+		{"duration",		required_argument,	0, 'd'},
+		{"frequency",		required_argument,	0, 'f'},
+		{"interface",		required_argument,	0, 'i'},
+		{"no-persistency",	0,					0, 0},
+		{0,					0,					0, 0}
 	};
 	while ((opt = ft_getopt_long(ac, av, optstring, &optarg,
 					long_options, &option_index)) != -1) {
 		switch (opt) {
 			case 0:
+				if (ft_strequ(long_options[option_index].name, "no-persistency"))
+					 g_data.opt |= OPT_NO_PERSISTENCY;
 				break;
 			case 'h':
 				print_help();
@@ -185,14 +187,9 @@ int		parse_option_line(int ac, char **av)
 				break;
 			case 'P':
 				g_data.opt |= OPT_PROXY;
-				g_data.opt |= OPT_PERSISTENT;
 				break;
 			case 'v':
 				g_data.opt |= OPT_VERBOSE;
-				break;
-			case 'p':
-				g_data.opt |= OPT_PERSISTENT;
-				g_data.opt &= ~OPT_PROXY;
 				break;
 			case 'n':
 				g_data.opt |= OPT_NUMERIC;

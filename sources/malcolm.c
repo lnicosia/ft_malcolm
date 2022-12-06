@@ -150,7 +150,7 @@ static void show_resume()
 	printf("\n");
 
 	/* Options */
-	printf("Mode: %s\n", g_data.opt & OPT_PROXY ? "PROXY":"SPOOFING");
+	printf("Mode: %s\n", g_data.opt & OPT_MANUAL ? "MANUAL":"AUTO");
 	printf("Persistent: %s\n", g_data.opt & OPT_NO_PERSISTENCY ? "NO":"YES");
 	printf("Delay: ");
 	g_data.opt & OPT_NO_PERSISTENCY ? printf("NONE\n"):printf("%d second(s)\n",g_data.frequency);
@@ -159,7 +159,7 @@ static void show_resume()
 		g_data.opt & OPT_DURATION ? printf("%d second(s)\n",g_data.duration):printf("UNDEFINED\n");
 	else
 		printf("NONE (only when persistency is active)\n");
-	printf("Interface: %s\n", g_data.opt & OPT_INTERFACE ? g_data.interface:"NONE");
+	printf("Interface: %s\n", g_data.opt & OPT_MANUAL ? "NONE":g_data.interface);
 	printf("Numeric mode: %s\n", g_data.opt & OPT_NUMERIC ? "TRUE":"FALSE");
 	printf("Verbose: %s\n", g_data.opt & OPT_VERBOSE ? "TRUE":"FALSE");
 	printf("===================\n");
@@ -190,7 +190,7 @@ int ft_malcolm(void)
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
 
-	if (g_data.opt & OPT_PROXY)
+	if (!(g_data.opt & OPT_MANUAL))
 		ft_proxy(g_data.source_ip, g_data.target_ip);
 	else {
 		printf("Sniffing ARP packets, press CTRL+C to exit...\n");

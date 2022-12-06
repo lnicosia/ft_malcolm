@@ -144,6 +144,12 @@ static int		parse_proxy(int *arg_count, char *arg)
 				(*arg_count)++;
 				break;
 			}
+		case 2:
+			{
+				g_data.interface = arg;
+				(*arg_count)++;
+				break;
+			}
 		default:
 			(*arg_count)++;
 			break;
@@ -155,16 +161,15 @@ int		parse_option_line(int ac, char **av)
 {
 	int	opt, option_index = 0;
 	char		*optarg = NULL;
-	const char	*optstring = "hVvPnd:f:i:";
+	const char	*optstring = "hVvmnd:f:";
 	static struct option long_options[] = {
 		{"help",			0,					0, 'h'},
 		{"version",			0,					0, 'V'},
-		{"proxy",			0,					0, 'P'},
 		{"verbose",			0,					0, 'v'},
 		{"numeric",			0,					0, 'n'},
+		{"manual",			0,					0, 'm'},
 		{"duration",		required_argument,	0, 'd'},
 		{"frequency",		required_argument,	0, 'f'},
-		{"interface",		required_argument,	0, 'i'},
 		{"no-persistency",	0,					0, 0},
 		{0,					0,					0, 0}
 	};
@@ -181,12 +186,8 @@ int		parse_option_line(int ac, char **av)
 			case 'V':
 				print_version();
 				return 1;
-			case 'i':
-				g_data.opt |= OPT_INTERFACE;
-				g_data.interface = optarg;
-				break;
-			case 'P':
-				g_data.opt |= OPT_PROXY;
+			case 'm':
+				g_data.opt |= OPT_MANUAL;
 				break;
 			case 'v':
 				g_data.opt |= OPT_VERBOSE;
@@ -217,25 +218,17 @@ int		parse_option_line(int ac, char **av)
 		}
 	}
 
-	if (g_data.opt & OPT_PROXY && !(g_data.opt & OPT_INTERFACE)) {
-		fprintf(stderr,
-			"You must select an interface for proxying between 2 hosts\n"
-			"QUITTING!\n"
-		);
-		return 1;
-	}
-
 	int arg_count = 0;
 	for (int i = 1; i < ac; i++) {
 		if (!is_arg_an_opt(av, i, optstring, long_options)) {
-			if (g_data.opt & OPT_PROXY)
-				parse_proxy(&arg_count, av[i]);
-			else
+			if (g_data.opt & OPT_MANUAL)
 				parse_mac(&arg_count, av[i]);
+			else
+				parse_proxy(&arg_count, av[i]);
 		}
 	}
-	if (g_data.opt & OPT_PROXY) {
-		if (arg_count != 2) {
+	if (!(g_data.opt & OPT_MANUAL)) {
+		if (arg_count != 3) {
 			print_usage(stderr);
 			return 1;
 		}

@@ -236,11 +236,11 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		}
 
 		/* Display related */
-		ft_putchar('\r');
+		/*ft_putchar('\r');
 		printf("Spoofing ");
 		fflush(stdout);
 		ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
-		i++;
+		i++;*/
 
 		if (g_data.opt & OPT_VERBOSE)
 			printf("\n[*] Waiting %d seconds\n", g_data.frequency);

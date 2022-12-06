@@ -84,19 +84,26 @@ static void print_tcp(struct tcphdr *tcp, struct iphdr *ip, ssize_t payload_size
 		char *payload = (char*)(tcp + 1);
 		char *location = ft_strstr(payload, "Location");
 		if (location) {
-			char *endl = ft_strchr(location, '\n');
-			if (endl)
-				*endl = 0;
-			dprintf(STDOUT_FILENO, "Accessing %s\n", location);
+			//char *endl = ft_strchr(location, '\n');
+			//if (endl)
+			//	*endl = 0;
+			dprintf(STDOUT_FILENO, "--BEGIN--\n%s\n--END--\n", payload);
 		}
+		//else
+		//	dprintf(STDOUT_FILENO, "--BEGIN--\n%s\n--END--\n", payload);
+		ssize_t i = 0, j = 0;
+		dprintf(STDOUT_FILENO, "payload_size = %ld\n", payload_size);
+		while (i < payload_size) {
+			//if (ft_isprint(payload[i])) {
+				dprintf(STDOUT_FILENO, "%c", payload[i]);
+				j++;
+			//}
+			i++;
+		}
+		if (j)
+			dprintf(STDOUT_FILENO, "\n");
 	}
-	/*ssize_t i = 0;
-	char *payload = (char*)(tcp + 1);
-	while (i < payload_size) {
-		if (ft_isprint(payload[i]))
-			dprintf(STDOUT_FILENO, "%c", payload[i]);
-		i++;
-	}*/
+
 }
 
 static void print_udp(struct udphdr *udp, struct iphdr *ip)
@@ -116,7 +123,7 @@ static int sniff_traffic(void *osef)
 	struct iphdr *ip;
 	int len = 65535;
 	char buffer[len];
-	int ret;
+	ssize_t ret;
 	struct sockaddr_ll src_addr;
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 
@@ -142,14 +149,16 @@ static int sniff_traffic(void *osef)
 					if (ip->protocol == IPPROTO_ICMP)
 						print_icmp(layer4, ip);
 					else if (ip->protocol == IPPROTO_TCP)
-						print_tcp(layer4, ip, ret - sizeof(struct ethernet_hdr) + sizeof(struct iphdr) + sizeof(struct tcphdr));
+						print_tcp(layer4, ip,
+						ret - (sizeof(struct ethernet_hdr) + sizeof(struct iphdr)
+						+ sizeof(struct tcphdr)));
 					//else if (ip->protocol == IPPROTO_UDP)
 					//	print_udp(layer4, ip);
 					(void)print_udp;
 				}
 
-				ft_bzero(buffer, len);
 			}
+			ft_bzero(buffer, len);
 		}
 	}
 

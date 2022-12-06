@@ -40,7 +40,7 @@ while true; do ip n | grep "66:66"; done
 
 # Docker needed installs
 apt-get update
-apt-get install tcpdump iputils-ping iproute2 net-tools arping curl wget zsh git -y
+apt-get install tcpdump iputils-ping iproute2 net-tools arping curl wget zsh git make gcc dsniff -y
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -
 
 # ==== TODO ====

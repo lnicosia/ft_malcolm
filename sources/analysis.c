@@ -1,4 +1,5 @@
 #include "../headers/malcolm.h"
+#include "../headers/options.h"
 #include <netinet/ip_icmp.h>
 
 static void print_icmp(struct icmphdr *icmp)
@@ -23,11 +24,15 @@ static int sniff_traffic(void *osef)
 
 	ft_bzero(buffer, len);
 
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Creating AF_PACKET socket for sniffer\n");
 	l2fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 
 	if (l2fd < 0)
 		fprintf(stderr, "[!] Failed to open layer 2 socket\n");
 
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Starting the sniffing loop\n");
 	while (g_data.loop) {
 		ret = recvfrom(l2fd, buffer, len, MSG_DONTWAIT,
 			(struct sockaddr *)&src_addr, &addr_len);
@@ -51,6 +56,9 @@ static int sniff_traffic(void *osef)
 
 	(void)print_icmp;
 
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Closing sniffer's socket\n");
+
 	close(l2fd);
 
 	return 0;
@@ -58,9 +66,12 @@ static int sniff_traffic(void *osef)
 
 int launch_thread(pthread_t *thread)
 {
+	if (g_data.opt & OPT_VERBOSE)
+		printf("[*] Starting sniffer thread\n");
 	if (pthread_create(thread, NULL,
 		(void*)sniff_traffic, NULL) != 0)
 	{
+		fprintf(stderr, "[!] Failed to create the sniffer thread\n");
 		return -1;
 	}
 

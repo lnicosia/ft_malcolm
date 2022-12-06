@@ -245,8 +245,11 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 			i++;
 		}
 
-		if (g_data.opt & OPT_VERBOSE)
-			printf("\n[*] Waiting %d seconds\n", g_data.frequency);
+		if (g_data.opt & OPT_VERBOSE) {
+			if (!(g_data.opt & OPT_SNIFF))
+				printf("\n");
+			printf("[*] Waiting %d seconds\n", g_data.frequency);
+		}
 		clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 	}
 

@@ -41,6 +41,14 @@ void		print_usage(FILE *f)
 {
 	fprintf(f,
 		"USAGE:\n"
+		"  ft_malcolm [Source IP] [Target IP] [Interface] [Options]\n"
+	);
+}
+
+void		print_musage(FILE *f)
+{
+	fprintf(f,
+		"MANUAL USAGE:\n"
 		"  ft_malcolm [Source IP] [Source MAC] [Target IP] [Target MAC] [Options]\n"
 	);
 }

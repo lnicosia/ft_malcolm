@@ -45,6 +45,7 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 
 # ==== TODO ====
 - LNICOSIA ASCII MENU
+- NUMERIC OPTION ONCE DEFENSE DONE
 
 # ==== BONUSES ====
 - Persistency

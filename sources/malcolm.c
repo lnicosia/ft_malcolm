@@ -151,7 +151,8 @@ static void show_resume()
 
 	/* Options */
 	printf("Mode: %s\n", g_data.opt & OPT_MANUAL ? "MANUAL":"AUTO");
-	printf("Persistent: %s\n", g_data.opt & OPT_NO_PERSISTENCY ? "NO":"YES");
+	printf("Persistent: %s\n", g_data.opt & OPT_NO_PERSISTENCY ? "FALSE":"TRUE");
+	printf("Sniff: %s\n", g_data.opt & OPT_SNIFF ? "TRUE":"FALSE");
 	printf("Delay: ");
 	g_data.opt & OPT_NO_PERSISTENCY ? printf("NONE\n"):printf("%d second(s)\n",g_data.frequency);
 	printf("Duration: ");
@@ -187,6 +188,7 @@ int ft_malcolm(void)
 	/* Initializing signal handler */
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Initializing signals handler\n");
+
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
 

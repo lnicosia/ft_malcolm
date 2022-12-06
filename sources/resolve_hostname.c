@@ -19,11 +19,7 @@ int		resolve_hostname(char *hostname, uint8_t *dest_ip)
 	hints.ai_socktype = SOCK_RAW;
 	hints.ai_flags = AI_CANONNAME;
 	if ((ret = getaddrinfo(hostname, NULL, &hints, &ai)))
-	{
-		dprintf(STDERR_FILENO, "ft_ping: %s: %s\n",
-			hostname, gai_strerror(ret));
 		return 1;
-	}
 	struct addrinfo *tmp = ai;
 	while (tmp)
 	{

@@ -224,7 +224,8 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		printf("[*] Starting the spoof process\n");
 
 	/* LISTEN THREAD INIT */
-	tret = launch_thread(&thread);
+	if (g_data.opt & OPT_SNIFF)
+		tret = launch_thread(&thread);
 
 	while (g_data.loop) {
 		if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
@@ -235,12 +236,14 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 			break;
 		}
 
-		/* Display related */
-		ft_putchar('\r');
-		printf("Spoofing ");
-		fflush(stdout);
-		ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
-		i++;
+		if (!(g_data.opt & OPT_SNIFF)) {
+			/* Display related */
+			ft_putchar('\r');
+			printf("Spoofing ");
+			fflush(stdout);
+			ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
+			i++;
+		}
 
 		if (g_data.opt & OPT_VERBOSE)
 			printf("\n[*] Waiting %d seconds\n", g_data.frequency);
@@ -249,7 +252,8 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 
 	/* CLOSE LISTEN THREAD */
 	int *retval;
-	if (!tret && pthread_join(thread, (void**)&retval) != 0)
+	if (g_data.opt & OPT_SNIFF && !tret &&
+		pthread_join(thread, (void**)&retval) != 0)
 		fprintf(stderr, "[!] Failed to close thread\n");
 
 	/* Restore ARP cache for targets */

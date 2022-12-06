@@ -10,5 +10,6 @@
 # define OPT_DURATION		(1UL << 4)
 # define OPT_FREQUENCY		(1UL << 5)
 # define OPT_SNIFF			(1UL << 6)
+# define OPT_BROADCAST		(1UL << 7)
 
 #endif

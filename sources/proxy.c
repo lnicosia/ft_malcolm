@@ -172,6 +172,7 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	int if_idx;
 	uint8_t if_mac[ETH_ADDR_LEN] = {0};
 	uint8_t if_ip[IP_ADDR_LEN] = {0};
+	uint8_t if_brdcst[IP_ADDR_LEN] = {0};
 	struct timespec wait = {g_data.frequency, 0};
 	uint64_t i = 0;
 	int tret;
@@ -188,13 +189,25 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		return 1;
 	if (interface_ip(g_data.interface, if_ip) < 0)
 		return 1;
+	if (g_data.opt & OPT_BROADCAST) {
+		uint8_t brdcst[ETH_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+		if (interface_brdcst(g_data.interface, if_brdcst) < 0)
+			return 1;
+		ft_memcpy(g_data.target_ip, if_brdcst, IP_ADDR_LEN);
+		ft_memcpy(g_data.target_mac, brdcst, ETH_ADDR_LEN);
+	}
 
 	if (g_data.opt & OPT_VERBOSE) {
 		printf("[*] %s has index %d with MAC address ", g_data.interface, if_idx);
 		print_mac(if_mac);
-		printf(" and IP address ");
+		printf(", IP address ");
 		fflush(stdout);
 		print_ip(STDOUT_FILENO, if_ip);
+		if (g_data.opt & OPT_BROADCAST) {
+			printf(" and broadcast address ");
+			fflush(stdout);
+			print_ip(STDOUT_FILENO, if_brdcst);
+		}
 		printf("\n");
 	}
 
@@ -206,9 +219,15 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	sockaddr.sll_pkttype = ARPHRD_NETROM;
 
 	/* Getting MAC addresses with ARP requests */
-	if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac) ||
-		arp_request(target_ip, sockaddr, if_mac, if_ip, g_data.target_mac))
-		return 1;
+	if (g_data.opt & OPT_BROADCAST) {
+		if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac))
+			return 1;
+	}
+	else {
+		if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac) ||
+			arp_request(target_ip, sockaddr, if_mac, if_ip, g_data.target_mac))
+			return 1;
+	}
 
 	dprintf(STDOUT_FILENO, "Proxying between ");
 	print_ip(STDOUT_FILENO, g_data.source_ip);
@@ -228,12 +247,21 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		tret = launch_thread(&thread);
 
 	while (g_data.loop) {
-		if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
-			sockaddr)) != 0 ||
-			(spoof(source_ip, g_data.source_mac, target_ip, if_mac,
-			sockaddr) != 0))
-		{
-			break;
+		if (g_data.opt & OPT_BROADCAST) {
+			if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
+				sockaddr) != 0))
+			{
+				break;
+			}
+		}
+		else {
+			if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
+				sockaddr)) != 0 ||
+				(spoof(source_ip, g_data.source_mac, target_ip, if_mac,
+				sockaddr) != 0))
+			{
+				break;
+			}
 		}
 
 		if (!(g_data.opt & OPT_SNIFF)) {
@@ -264,7 +292,8 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	i = 4;
 	while (i > 0) {
 		spoof(target_ip, g_data.target_mac, source_ip, g_data.source_mac, sockaddr);
-		spoof(source_ip, g_data.source_mac, target_ip, g_data.target_mac, sockaddr);
+		if (!(g_data.opt & OPT_BROADCAST))
+			spoof(source_ip, g_data.source_mac, target_ip, g_data.target_mac, sockaddr);
 		i--;
 	}
 

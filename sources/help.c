@@ -53,6 +53,14 @@ void		print_musage(FILE *f)
 	);
 }
 
+void		print_busage(FILE *f)
+{
+	fprintf(f,
+		"BROADCAST USAGE:\n"
+		"  ft_malcolm [Source IP] [Interface] [Options]\n"
+	);
+}
+
 static void examples()
 {
 	printf("EXAMPLES:\n"

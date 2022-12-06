@@ -120,12 +120,14 @@ int			ft_malcolm(void);
 /* interface.c */
 int			interface_index(char *name);
 int			interface_mac(char *name, uint8_t *ret);
+int			interface_brdcst(char *name, uint8_t *ret);
 int			interface_ip(char *name, uint8_t *ret);
 
 /* help.c */
 void		print_help();
 void		print_usage(FILE *f);
 void		print_musage(FILE *f);
+void		print_busage(FILE *f);
 void		print_version(void);
 
 /* parse_option_line.c */

@@ -127,6 +127,11 @@ static int		parse_proxy(int *arg_count, char *arg)
 			}
 		case 1:
 			{
+				if (g_data.opt & OPT_BROADCAST) {
+					g_data.interface = arg;
+					(*arg_count)++;
+					break;
+				}
 				if (is_fqdn(arg)) {
 					g_data.target_hostname = arg;
 					resolve_hostname(arg, g_data.target_ip);
@@ -159,7 +164,7 @@ int		parse_option_line(int ac, char **av)
 {
 	int	opt, option_index = 0;
 	char		*optarg = NULL;
-	const char	*optstring = "hVvsmnd:f:";
+	const char	*optstring = "hVvsmbnd:f:";
 	static struct option long_options[] = {
 		{"help",			0,					0, 'h'},
 		{"version",			0,					0, 'V'},
@@ -167,6 +172,7 @@ int		parse_option_line(int ac, char **av)
 		{"numeric",			0,					0, 'n'},
 		{"manual",			0,					0, 'm'},
 		{"sniff",			0,					0, 's'},
+		{"broadcast",		0,					0, 'b'},
 		{"duration",		required_argument,	0, 'd'},
 		{"frequency",		required_argument,	0, 'f'},
 		{"no-persistency",	0,					0, 0},
@@ -187,6 +193,9 @@ int		parse_option_line(int ac, char **av)
 				return 1;
 			case 'm':
 				g_data.opt |= OPT_MANUAL;
+				break;
+			case 'b':
+				g_data.opt |= OPT_BROADCAST;
 				break;
 			case 's':
 				g_data.opt |= OPT_SNIFF;
@@ -230,8 +239,12 @@ int		parse_option_line(int ac, char **av)
 		}
 	}
 	if (!(g_data.opt & OPT_MANUAL)) {
-		if (arg_count != 3) {
+		if (!(g_data.opt & OPT_BROADCAST) && arg_count != 3) {
 			print_usage(stderr);
+			return 1;
+		}
+		else if (g_data.opt & OPT_BROADCAST && arg_count != 2) {
+			print_busage(stderr);
 			return 1;
 		}
 		if (g_data.opt & OPT_NO_PERSISTENCY) {
@@ -240,10 +253,15 @@ int		parse_option_line(int ac, char **av)
 			print_usage(stderr);
 			return 1;
 		}
-
 	}
 	else {
 		if (arg_count != 4) {
+			print_musage(stderr);
+			return 1;
+		}
+		if (g_data.opt & OPT_BROADCAST) {
+			fprintf(stderr,
+				"--broadcast -b is not available when manual mode is selected, QUITTING!\n");
 			print_musage(stderr);
 			return 1;
 		}

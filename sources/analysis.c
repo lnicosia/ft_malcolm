@@ -73,38 +73,53 @@ static void print_icmp(struct icmphdr *icmp, struct iphdr *ip)
 	dprintf(STDOUT_FILENO, "%s\n", inet_ntoa(*(struct in_addr*)&ip->daddr));
 }
 
+static void	search_for_str(struct iphdr *ip, char *str, char *srch)
+{
+	char	*tmp;
+	size_t	len;
+
+	tmp = str;
+	len = ft_strlen(srch);
+	while ((tmp = ft_strstr(tmp, srch))) {
+		size_t i = 0;
+		while (i < len && *tmp) {
+			i++;
+			tmp++;
+		}
+		if (!*tmp)
+			break;
+		char *endl = ft_strchr(tmp, '\r');
+		if (endl)
+			*endl = 0;
+		endl = ft_strchr(tmp, '\n');
+		if (endl)
+			*endl = 0;
+		if (!ft_strcmp(srch, "Host: "))
+			dprintf(STDOUT_FILENO, "%s HTTP request to ",
+			inet_ntoa(*(struct in_addr*)&ip->saddr));
+		dprintf(STDOUT_FILENO, "%s", tmp);
+		fflush(stdout);
+		if (!ft_strcmp(srch, "GET ") || !ft_strcmp(srch, "POST "))
+			dprintf(STDOUT_FILENO, "\n");
+		tmp++;
+	}
+}
+
+static void	find_links(struct iphdr *ip, char *str)
+{
+	search_for_str(ip, str, "Host: ");
+	search_for_str(ip, str, "GET ");
+	search_for_str(ip, str, "Host: ");
+	search_for_str(ip, str, "POST ");
+}
+
 static void print_tcp(struct tcphdr *tcp, struct iphdr *ip, ssize_t payload_size)
 {
+	/* Maybe for future uses */
 	(void)print_tcp_flags;
-	(void)ip;
-	/*dprintf(STDOUT_FILENO, "%d TCP", ft_ntohs(tcp->th_sport));
-	//print_tcp_flags(tcp);
-	dprintf(STDOUT_FILENO, " to %s:%d",
-		inet_ntoa(*(struct in_addr*)&ip->daddr), ft_ntohs(tcp->th_dport));*/
-	if (payload_size > 0) {
-		char *payload = (char*)(tcp + 1);
-		char *location = ft_strstr(payload, "Location");
-		if (location) {
-			//char *endl = ft_strchr(location, '\n');
-			//if (endl)
-			//	*endl = 0;
-			dprintf(STDOUT_FILENO, "--BEGIN--\n%s\n--END--\n", payload);
-		}
-		//else
-		//	dprintf(STDOUT_FILENO, "--BEGIN--\n%s\n--END--\n", payload);
-		ssize_t i = 0, j = 0;
-		dprintf(STDOUT_FILENO, "payload_size = %ld\n", payload_size);
-		while (i < payload_size) {
-			//if (ft_isprint(payload[i])) {
-				dprintf(STDOUT_FILENO, "%c", payload[i]);
-				j++;
-			//}
-			i++;
-		}
-		if (j)
-			dprintf(STDOUT_FILENO, "\n");
-	}
-
+	(void)tcp;
+	if (payload_size > 0)
+		find_links(ip, (char*)(tcp + 1));
 }
 
 static void print_udp(struct udphdr *udp, struct iphdr *ip)

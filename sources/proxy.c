@@ -189,6 +189,7 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 		return 1;
 	if (interface_ip(g_data.interface, if_ip) < 0)
 		return 1;
+	ft_memcpy(g_data.if_ip, if_ip, IP_ADDR_LEN);
 	if (g_data.opt & OPT_BROADCAST) {
 		uint8_t brdcst[ETH_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 		if (interface_brdcst(g_data.interface, if_brdcst) < 0)

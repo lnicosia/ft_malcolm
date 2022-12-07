@@ -3,6 +3,7 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <stdlib.h>
 
 static void	print_tcp_flags(struct tcphdr *header)
 {
@@ -130,6 +131,86 @@ static void print_udp(struct udphdr *udp, struct iphdr *ip)
 		inet_ntoa(*(struct in_addr*)&ip->daddr), ft_ntohs(udp->uh_dport));
 }
 
+static int transmit_packet(struct iphdr *ip, ssize_t size)
+{
+	int	l3fd;
+	int one;
+	struct sockaddr_in save_daddr, save_saddr;
+	socklen_t addr_len = sizeof(struct sockaddr);
+
+	l3fd = socket(AF_INET, SOCK_RAW, ip->protocol);
+
+	if (l3fd < 0)
+		fprintf(stderr, "[!] Failed to open layer 3 socket\n");
+
+	one = 1;
+	if ((setsockopt(l3fd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one))) != 0) {
+		fprintf(stderr, "[!] Failed to set header option for layer 3 socket\n");
+		close(l3fd);
+		return 1;
+	}
+
+	ft_bzero(&save_saddr, sizeof(save_saddr));
+	ft_bzero(&save_daddr, sizeof(save_daddr));
+	save_saddr.sin_family = AF_INET;
+	save_daddr.sin_family = AF_INET;
+	ft_memcpy(&save_saddr.sin_addr, &ip->saddr, sizeof(ip->saddr));
+	ft_memcpy(&save_daddr.sin_addr, &ip->daddr, sizeof(ip->daddr));
+
+	ft_memcpy(&ip->saddr, &g_data.if_ip, sizeof(g_data.if_ip));
+
+	dprintf(STDOUT_FILENO, "[*] Transmitting packet from ");
+	print_ip(STDOUT_FILENO, (uint8_t*)&save_saddr.sin_addr);
+	dprintf(STDOUT_FILENO, " to ");
+	print_ip(STDOUT_FILENO, (uint8_t*)&ip->daddr);
+	dprintf(STDOUT_FILENO, "\n");
+
+	if (sendto(l3fd, ip, size, 0, (struct sockaddr*)&save_daddr, addr_len) < 0) {
+		fprintf(stderr, "[!] Failed to transmit packet\n");
+		close(l3fd);
+		return 1;
+	}
+
+	ssize_t ret = 0;
+	struct sockaddr_in recv_addr;
+	int len = 65535;
+	char buffer[len];
+	while (g_data.loop) {
+		ret = recvfrom(l3fd, buffer, len, MSG_DONTWAIT,
+			(struct sockaddr *)&recv_addr, &addr_len);
+		if (ret > 0) {
+			struct iphdr *newip = (struct iphdr*)buffer;
+
+			//ft_bzero(&dst_addr, sizeof(dst_addr));
+			//dst_addr.sin_family = AF_INET;
+
+			dprintf(STDOUT_FILENO, "[*] Received response from ");
+			print_ip(STDOUT_FILENO, (uint8_t*)&newip->saddr);
+			dprintf(STDOUT_FILENO, "\n");
+
+			ft_memcpy(&newip->daddr, &save_saddr.sin_addr, sizeof(ip->saddr));
+			ft_memcpy(&newip->saddr, &save_daddr.sin_addr, sizeof(ip->daddr));
+			ft_memcpy(&save_saddr.sin_addr, &newip->daddr, sizeof(newip->daddr));
+
+			dprintf(STDOUT_FILENO, "[*] Transmitting packet to ");
+			print_ip(STDOUT_FILENO, (uint8_t*)&newip->daddr);
+			dprintf(STDOUT_FILENO, "\n");
+
+			if (sendto(l3fd, newip, ret, 0, (struct sockaddr*)&save_saddr, addr_len) < 0) {
+				fprintf(stderr, "[!] Failed to transmit packet\n");
+				close(l3fd);
+				return 1;
+			}
+			ft_bzero(buffer, len);
+			// exit(0);
+			break;
+		}
+	}
+
+	close(l3fd);
+	return 0;
+}
+
 static int sniff_traffic(void *osef)
 {
 	/* TODO: Verbose */
@@ -165,19 +246,21 @@ static int sniff_traffic(void *osef)
 				//print_mac(src_addr.sll_addr);
 				if (ft_htons(ethernet->type) == ETHERTYPE_IP) {
 					ip = (struct iphdr *)(buffer + sizeof(struct ethernet_hdr));
-					void *layer4 = buffer + sizeof(struct ethernet_hdr)
-						+ sizeof(struct iphdr);
-					if (ip->protocol == IPPROTO_ICMP)
-						print_icmp(layer4, ip);
-					else if (ip->protocol == IPPROTO_TCP)
-						print_tcp(layer4, ip,
-						ret - (sizeof(struct ethernet_hdr) + sizeof(struct iphdr)
-						+ sizeof(struct tcphdr)));
-					//else if (ip->protocol == IPPROTO_UDP)
-					//	print_udp(layer4, ip);
-					(void)print_udp;
+					if (filter_out(g_data.if_ip, (uint8_t*)&ip->daddr, IP_ADDR_LEN)) {
+						void *layer4 = buffer + sizeof(struct ethernet_hdr)
+							+ sizeof(struct iphdr);
+						if (ip->protocol == IPPROTO_ICMP)
+							print_icmp(layer4, ip);
+						else if (ip->protocol == IPPROTO_TCP)
+							print_tcp(layer4, ip,
+							ret - (sizeof(struct ethernet_hdr) + sizeof(struct iphdr)
+							+ sizeof(struct tcphdr)));
+						//else if (ip->protocol == IPPROTO_UDP)
+						//	print_udp(layer4, ip);
+						(void)print_udp;
+						transmit_packet(ip, ret - sizeof(struct ethernet_hdr));
+					}
 				}
-
 			}
 			ft_bzero(buffer, len);
 		}

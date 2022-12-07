@@ -29,6 +29,12 @@ netcat 172.17.0.1 4444
 # TCP dump listen for netcat communication
 tcpdump -s 0 -U -n -w - -i eth0
 
+# Disable kernel redirect
+sysctl -w net.ipv4.ip_forward=0
+
+# Privileged
+sudo docker run --privileged -it --name malcolm5 jgoerzen/debian-base-minimal /bin/sh
+
 # Check arp cache
 $ ip neighbor
 

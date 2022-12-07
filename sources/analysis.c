@@ -3,6 +3,7 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <stdlib.h>
 
 static void	print_tcp_flags(struct tcphdr *header)
 {
@@ -130,6 +131,77 @@ static void print_udp(struct udphdr *udp, struct iphdr *ip)
 		inet_ntoa(*(struct in_addr*)&ip->daddr), ft_ntohs(udp->uh_dport));
 }
 
+static int transmit_packet(struct iphdr *ip, ssize_t size)
+{
+	int	l3fd;
+	int one;
+	struct sockaddr_in dst_addr;
+	socklen_t addr_len = sizeof(struct sockaddr);
+
+	l3fd = socket(AF_INET, SOCK_RAW, ip->protocol);
+
+	if (l3fd < 0)
+		fprintf(stderr, "[!] Failed to open layer 3 socket\n");
+
+	one = 1;
+	if ((setsockopt(l3fd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one))) != 0) {
+		fprintf(stderr, "[!] Failed to set header option for layer 3 socket\n");
+		close(l3fd);
+		return 1;
+	}
+
+	ft_bzero(&dst_addr, sizeof(dst_addr));
+	dst_addr.sin_family = AF_INET;
+	ft_memcpy(&dst_addr.sin_addr, &ip->daddr, sizeof(ip->daddr));
+
+	ip->saddr = inet_addr("172.17.0.2");
+
+	printf("[*] Transmitting packet\n");
+	if (sendto(l3fd, ip, size, 0, (struct sockaddr*)&dst_addr, addr_len) < 0) {
+		fprintf(stderr, "[!] Failed to transmit packet\n");
+		close(l3fd);
+		return 1;
+	}
+
+	ssize_t ret = 0;
+	struct sockaddr_in src_addr;
+	int len = 65535;
+	char buffer[len];
+	while (g_data.loop) {
+		ret = recvfrom(l3fd, buffer, len, MSG_DONTWAIT,
+			(struct sockaddr *)&src_addr, &addr_len);
+		if (ret > 0) {
+			struct iphdr *newip = (struct iphdr*)buffer;
+			dprintf(STDOUT_FILENO, "Received from ");
+			print_ip(STDOUT_FILENO, (uint8_t*)&newip->saddr);
+			dprintf(STDOUT_FILENO, " to ");
+			print_ip(STDOUT_FILENO, (uint8_t*)&newip->daddr);
+			dprintf(STDOUT_FILENO, "\n");
+
+			ft_bzero(&dst_addr, sizeof(dst_addr));
+			dst_addr.sin_family = AF_INET;
+
+			newip->daddr = inet_addr("172.17.0.3");
+			newip->saddr = inet_addr("8.8.8.8");
+
+			ft_memcpy(&dst_addr.sin_addr, &newip->daddr, sizeof(newip->daddr));
+
+			printf("[*] Transmitting packet\n");
+			if (sendto(l3fd, newip, ret, 0, (struct sockaddr*)&dst_addr, addr_len) < 0) {
+				fprintf(stderr, "[!] Failed to transmit packet\n");
+				close(l3fd);
+				return 1;
+			}
+
+			ft_bzero(buffer, len);
+			break;
+		}
+	}
+
+	close(l3fd);
+	return 0;
+}
+
 static int sniff_traffic(void *osef)
 {
 	/* TODO: Verbose */
@@ -177,6 +249,8 @@ static int sniff_traffic(void *osef)
 					//	print_udp(layer4, ip);
 					(void)print_udp;
 				}
+
+				transmit_packet(ip, ret - sizeof(struct ethernet_hdr));
 
 			}
 			ft_bzero(buffer, len);

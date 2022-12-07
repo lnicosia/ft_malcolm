@@ -158,8 +158,9 @@ static int sniff_traffic(void *osef)
 		ret = recvfrom(l2fd, buffer, len, MSG_DONTWAIT,
 			(struct sockaddr *)&src_addr, &addr_len);
 		if (ret > 0) {
-			if (!filter_out(g_data.source_mac, src_addr.sll_addr, ETH_ADDR_LEN) ||
-				!filter_out(g_data.target_mac, src_addr.sll_addr, ETH_ADDR_LEN)) {
+			if (g_data.opt & OPT_BROADCAST ||
+				(!filter_out(g_data.source_mac, src_addr.sll_addr, ETH_ADDR_LEN) ||
+				!filter_out(g_data.target_mac, src_addr.sll_addr, ETH_ADDR_LEN))) {
 				ethernet = (struct ethernet_hdr *)buffer;
 				//print_mac(src_addr.sll_addr);
 				if (ft_htons(ethernet->type) == ETHERTYPE_IP) {

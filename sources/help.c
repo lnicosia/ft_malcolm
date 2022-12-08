@@ -71,10 +71,11 @@ void		print_usage(FILE *f)
 static void examples()
 {
 	printf("EXAMPLES:\n"
-			"  sudo ./ft_malcolm 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02\n"
-			"  sudo ./ft_malcolm -P 172.17.0.2 172.17.0.3 -i docker0\n"
-			"  sudo ./ft_malcolm -P 192.168.1.20 192.168.1.34 -i eth0 -d 60 -f 1\n"
-			"  sudo ./ft_malcolm 110.24.10.5 54:10:78:ab:45:60 110.24.10.17 41:64:25:11:00:02 -p\n"
+			"  sudo ./ft_malcolm --manual 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02 --no-persistency\n"
+			"  sudo ./ft_malcolm 172.17.0.2 172.17.0.3 docker0\n"
+			"  sudo ./ft_malcolm 172.17.0.1 eth0 -b --deny -d 20 --frequency 1 -v\n"
+			"  sudo ./ft_malcolm --manual 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02 --duration 5 --verbose\n"
+			"  sudo ./ft_malcolm 172.17.0.1 eth0 -b -s"
 	);
 }
 
@@ -113,11 +114,11 @@ static void modes()
 			"    Specifying an interface is mandatory for this mode\n"
 			"    Note that persistency is always active (you can't specify --no-persistency)\n"
 			"    At the end of the process, ARP cache of targets will be reset so it will work normally again\n"
-			"    Be sure to enable kernel IP forwarding to allow packets redistribution: sysctl -w net.ipv4.ip_forward=1\n"
+			"    Be sure to enable kernel IP forwarding to allow packets redistribution: sysctl -w net.ipv4.ip_forward=1 && sysctl -p\n"
 			"      EXEMPLE: ./ft_malcolm 172.17.0.1 172.17.0.3 eth0\n"
 			"  BROADCAST:\n"
 			"    ft_malcolm --broadcast [Source IP] [Interface] [Options]: Proxy the whole network\n"
-			"    Works like the default's mode but spoof all machines within the network\n"
+			"    Works like default mode but spoof all machines within the network\n"
 			"    You must only give the source IP since the target will be the broadcast\n"
 			"    This mode will own the addresses of the broadcast address automatically\n"
 			"    At the end of the process, ARP cache of the whole network will be reset so it will work normally again\n"
@@ -145,6 +146,27 @@ static void persistency()
 	);
 }
 
+static void sniff()
+{
+	printf("SNIFF (WIP):\n"
+			"  -s --sniff: Trigger the active proxying mode and monitor intercepted packets\n"
+			"  This option won't use the kernel's auto forwarding to redirect packets over the network\n"
+			"  Packets are displayed so you keep a track of your target(s) activities\n"
+			"  Be sure to disable kernel IP forwarding when using this option: sysctl -w net.ipv4.ip_forward=0 && sysctl -p\n"
+			"  Note that this option is not available for -m --manual mode\n"
+	);
+}
+
+static void deny()
+{
+	printf("DENY:\n"
+			"  --deny: DOS target(s) by redirecting the packets to an arbitraty hardware address\n"
+			"  Only available for normal mode\n"
+			"  Can be used with --broadcast to deny (DOS) the whole LAN from accessing the source address\n"
+			"  EXEMPLE: ./ft_malcolm 172.17.0.1 eth0 -b --deny\n"
+	);
+}
+
 static void duration()
 {
 	printf("DURATION:\n"
@@ -156,7 +178,6 @@ static void duration()
 static void misc()
 {
 	printf("MISC:\n"
-			"  -i --interface [Interface Name]: Select the interface to use, only works with proxy mode\n"
 			"  -f --frequency [Time]: Select (in seconds) the rate for ARP replies in --persistent and --proxy mode\n"
 			"  -v --verbose: Displays informations about what ft_malcolm is doing\n"
 			"  -h --help: Display the help menu\n"
@@ -177,6 +198,8 @@ void		print_help()
 	target_specification();
 	formatting();
 	modes();
+	deny();
+	sniff();
 	persistency();
 	duration();
 	misc();

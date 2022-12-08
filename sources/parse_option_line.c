@@ -20,7 +20,7 @@ static int		invalid_ip(char *str)
 		k++;
 	}
 
-	if (check != IP_ADDR_LEN-1) {
+	if (check != IP_ADDR_LEN - 1) {
 		fprintf(stderr, "Invalid IP address %s (invalid number of bytes)\n", str);
 		return 1;
 	}
@@ -76,10 +76,23 @@ static int		invalid_ip(char *str)
 
 static int		ft_atom(char *str, uint8_t *dest)
 {
-	char **split = ft_strsplit(str, ':');
+	char **split;
 	int i = 0;
 	int ret = 0;
 
+	int k = 0, check = 0;
+	while (str[k]) {
+		if (str[k] == ':')
+			check++;
+		k++;
+	}
+
+	if (check != ETH_ADDR_LEN - 1) {
+		fprintf(stderr, "Invalid mac address %s (invalid number of bytes)\n", str);
+		return 1;
+	}
+
+	split = ft_strsplit(str, ':');
 	if (!split) {
 		fprintf(stderr, "ft_strsplit fail\n");
 		return 1;
@@ -90,11 +103,6 @@ static int		ft_atom(char *str, uint8_t *dest)
 	while (tmp && *tmp) {
 		if (ft_strlen(*tmp) != 2) {
 			fprintf(stderr, "Invalid mac address %s (invalid format)\n", str);
-			ret = 1;
-			break;
-		}
-		if (byte >= ETH_ADDR_LEN) {
-			fprintf(stderr, "Invalid mac address %s (too many bytes)\n", str);
 			ret = 1;
 			break;
 		}
@@ -113,6 +121,11 @@ static int		ft_atom(char *str, uint8_t *dest)
 		dest[byte] = ft_atoi_base(*tmp, "0123456789ABCDEF");
 		byte++;
 		tmp++;
+	}
+
+	if (!ret && byte != ETH_ADDR_LEN) {
+		fprintf(stderr, "Invalid mac address %s (invalid number of bytes)\n", str);
+		ret = 1;
 	}
 
 	while (split[i])

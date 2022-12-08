@@ -243,21 +243,24 @@ static int sniff_traffic(void *osef)
 				(!filter_out(g_data.source_mac, src_addr.sll_addr, ETH_ADDR_LEN) ||
 				!filter_out(g_data.target_mac, src_addr.sll_addr, ETH_ADDR_LEN))) {
 				ethernet = (struct ethernet_hdr *)buffer;
-				//print_mac(src_addr.sll_addr);
+				// print_mac(src_addr.sll_addr);
 				if (ft_htons(ethernet->type) == ETHERTYPE_IP) {
 					ip = (struct iphdr *)(buffer + sizeof(struct ethernet_hdr));
-					if (filter_out(g_data.if_ip, (uint8_t*)&ip->daddr, IP_ADDR_LEN)) {
-						void *layer4 = buffer + sizeof(struct ethernet_hdr)
-							+ sizeof(struct iphdr);
-						if (ip->protocol == IPPROTO_ICMP)
-							print_icmp(layer4, ip);
-						else if (ip->protocol == IPPROTO_TCP)
-							print_tcp(layer4, ip,
-							ret - (sizeof(struct ethernet_hdr) + sizeof(struct iphdr)
-							+ sizeof(struct tcphdr)));
-						//else if (ip->protocol == IPPROTO_UDP)
-						//	print_udp(layer4, ip);
-						(void)print_udp;
+					void *layer4 = buffer + sizeof(struct ethernet_hdr)
+						+ sizeof(struct iphdr);
+					if (ip->protocol == IPPROTO_ICMP)
+						print_icmp(layer4, ip);
+					else if (ip->protocol == IPPROTO_TCP)
+						print_tcp(layer4, ip,
+						ret - (sizeof(struct ethernet_hdr) + sizeof(struct iphdr)
+						+ sizeof(struct tcphdr)));
+					// else if (ip->protocol == IPPROTO_UDP)
+					//	print_udp(layer4, ip);
+					(void)print_udp;
+
+					if (filter_out(g_data.source_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN) &&
+						filter_out(g_data.if_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN))
+					{
 						transmit_packet(ip, ret - sizeof(struct ethernet_hdr));
 					}
 				}

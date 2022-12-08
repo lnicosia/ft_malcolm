@@ -190,6 +190,7 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	if (interface_ip(g_data.interface, if_ip) < 0)
 		return 1;
 
+	ft_memcpy(g_data.if_mac, if_mac, ETH_ADDR_LEN);
 	ft_memcpy(g_data.if_ip, if_ip, IP_ADDR_LEN);
 
 	if (g_data.opt & OPT_BROADCAST) {

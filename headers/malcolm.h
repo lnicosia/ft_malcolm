@@ -92,6 +92,7 @@ typedef struct	s_data
 
 	int			sockfd;
 	char		*interface;
+	uint8_t		if_mac[ETH_ADDR_LEN];
 	uint8_t		if_ip[IP_ADDR_LEN];
 
 	uint32_t	frequency; /* In seconds */

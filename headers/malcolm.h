@@ -142,7 +142,4 @@ int			ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
 /* analysis.c */
 int			launch_thread(pthread_t *thread);
 
-/* resolve_hostname.c */
-int			resolve_hostname(char *hostname, uint8_t *dest_ip);
-
 #endif

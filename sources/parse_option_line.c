@@ -34,35 +34,17 @@ static int		ft_atom(char *str, uint8_t *dest)
 	return 0;
 }
 
-static int		is_fqdn(char *address)
-{
-	int i = 0;
-	while (address[i]) {
-		if (!ft_isdigit(address[i]) && address[i] != '.')
-			return 1;
-		i++;
-	}
-	return 0;
-}
-
 static int		parse_mac(int *arg_count, char *arg)
 {
 	switch (*arg_count) {
 		case 0:
 			{
-				if (is_fqdn(arg)) {
-					g_data.source_hostname = arg;
-					if (resolve_hostname(arg, g_data.source_ip))
-						return 1;
-				}
-				else {
-					in_addr_t ip = inet_addr(arg);
-					uint8_t *ptr = (uint8_t*)&ip;
-					g_data.source_ip[0] = ptr[0];
-					g_data.source_ip[1] = ptr[1];
-					g_data.source_ip[2] = ptr[2];
-					g_data.source_ip[3] = ptr[3];
-				}
+				in_addr_t ip = inet_addr(arg);
+				uint8_t *ptr = (uint8_t*)&ip;
+				g_data.source_ip[0] = ptr[0];
+				g_data.source_ip[1] = ptr[1];
+				g_data.source_ip[2] = ptr[2];
+				g_data.source_ip[3] = ptr[3];
 				(*arg_count)++;
 			break;
 			}
@@ -75,19 +57,12 @@ static int		parse_mac(int *arg_count, char *arg)
 			}
 		case 2:
 			{
-				if (is_fqdn(arg)) {
-					g_data.target_hostname = arg;
-					if (resolve_hostname(arg, g_data.target_ip))
-						return 1;
-				}
-				else {
-					in_addr_t ip = inet_addr(arg);
-					uint8_t *ptr = (uint8_t*)&ip;
-					g_data.target_ip[0] = ptr[0];
-					g_data.target_ip[1] = ptr[1];
-					g_data.target_ip[2] = ptr[2];
-					g_data.target_ip[3] = ptr[3];
-				}
+				in_addr_t ip = inet_addr(arg);
+				uint8_t *ptr = (uint8_t*)&ip;
+				g_data.target_ip[0] = ptr[0];
+				g_data.target_ip[1] = ptr[1];
+				g_data.target_ip[2] = ptr[2];
+				g_data.target_ip[3] = ptr[3];
 				(*arg_count)++;
 				break;
 			}
@@ -110,18 +85,12 @@ static int		parse_proxy(int *arg_count, char *arg)
 	switch (*arg_count) {
 		case 0:
 			{
-				if (is_fqdn(arg)) {
-					g_data.source_hostname = arg;
-					resolve_hostname(arg, g_data.source_ip);
-				}
-				else {
-					in_addr_t ip = inet_addr(arg);
-					uint8_t *ptr = (uint8_t*)&ip;
-					g_data.source_ip[0] = ptr[0];
-					g_data.source_ip[1] = ptr[1];
-					g_data.source_ip[2] = ptr[2];
-					g_data.source_ip[3] = ptr[3];
-				}
+				in_addr_t ip = inet_addr(arg);
+				uint8_t *ptr = (uint8_t*)&ip;
+				g_data.source_ip[0] = ptr[0];
+				g_data.source_ip[1] = ptr[1];
+				g_data.source_ip[2] = ptr[2];
+				g_data.source_ip[3] = ptr[3];
 				(*arg_count)++;
 				break;
 			}
@@ -132,18 +101,12 @@ static int		parse_proxy(int *arg_count, char *arg)
 					(*arg_count)++;
 					break;
 				}
-				if (is_fqdn(arg)) {
-					g_data.target_hostname = arg;
-					resolve_hostname(arg, g_data.target_ip);
-				}
-				else {
-					in_addr_t ip = inet_addr(arg);
-					uint8_t *ptr = (uint8_t*)&ip;
-					g_data.target_ip[0] = ptr[0];
-					g_data.target_ip[1] = ptr[1];
-					g_data.target_ip[2] = ptr[2];
-					g_data.target_ip[3] = ptr[3];
-				}
+				in_addr_t ip = inet_addr(arg);
+				uint8_t *ptr = (uint8_t*)&ip;
+				g_data.target_ip[0] = ptr[0];
+				g_data.target_ip[1] = ptr[1];
+				g_data.target_ip[2] = ptr[2];
+				g_data.target_ip[3] = ptr[3];
 				(*arg_count)++;
 				break;
 			}

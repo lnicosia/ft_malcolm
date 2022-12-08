@@ -4,41 +4,131 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int		invalid_ip(char *str)
+{
+	char **split;
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	int ret = 0;
+	int byte = 0;
+	int check = 0;
+
+	while (str[k]) {
+		if (str[k] == '.')
+			check++;
+		k++;
+	}
+
+	if (check != IP_ADDR_LEN-1) {
+		fprintf(stderr, "Invalid IP address %s (invalid number of bytes)\n", str);
+		return 1;
+	}
+
+	split = ft_strsplit(str, '.');
+	if (!split) {
+		fprintf(stderr, "ft_strsplit fail\n");
+		return 1;
+	}
+
+	byte = 0;
+
+	char **tmp = split;
+	int len;
+	int nb;
+	while (tmp && *tmp) {
+		j = 0;
+		len = ft_strlen(*tmp);
+		if (len < 1 || len > 3) {
+			fprintf(stderr, "Invalid IP address %s (invalid format)\n", str);
+			ret = 1;
+			break;
+		}
+		nb = ft_atoi(*tmp);
+		if (nb < 0 || nb > 255) {
+			fprintf(stderr, "Invalid IP address %s (value error)\n", str);
+			ret = 1;
+			break;
+		}
+		while (j < len) {
+			if (!ft_isdigit((*tmp)[j])) {
+				fprintf(stderr, "Invalid IP address %s (invalid character)\n", str);
+				ret = 1;
+				break;
+			}
+			j++;
+		}
+		tmp++;
+		byte++;
+	}
+
+	if (!ret && byte != IP_ADDR_LEN) {
+		fprintf(stderr, "Invalid IP address %s (invalid number of bytes)\n", str);
+		ret = 1;
+	}
+
+	while (split[i])
+		free(split[i++]);
+	free(split);
+
+	return ret;
+}
+
 static int		ft_atom(char *str, uint8_t *dest)
 {
 	char **split = ft_strsplit(str, ':');
+	int i = 0;
+	int ret = 0;
+
 	if (!split) {
 		fprintf(stderr, "ft_strsplit fail\n");
+		return 1;
 	}
+
 	int byte = 0;
 	char **tmp = split;
 	while (tmp && *tmp) {
-		if (byte >= 6) {
-			fprintf(stderr, "\nInvalid mac address %s (too many bytes)\n", str);
-			free(split);
-			return 1;
+		if (ft_strlen(*tmp) != 2) {
+			fprintf(stderr, "Invalid mac address %s (invalid format)\n", str);
+			ret = 1;
+			break;
+		}
+		if (byte >= ETH_ADDR_LEN) {
+			fprintf(stderr, "Invalid mac address %s (too many bytes)\n", str);
+			ret = 1;
+			break;
 		}
 		int j = 0;
 		while ((*tmp)[j]) {
 			(*tmp)[j] = ft_toupper((*tmp)[j]);
+			if (!(((*tmp)[j] >= '0' && (*tmp)[j] <= '9') ||
+				((*tmp)[j] >= 'A' && (*tmp)[j] <= 'F')))
+			{
+				fprintf(stderr, "Invalid mac address %s (bad value)\n", str);
+				ret = 1;
+				break;
+			}
 			j++;
 		}
 		dest[byte] = ft_atoi_base(*tmp, "0123456789ABCDEF");
 		byte++;
 		tmp++;
 	}
-	int i = 0;
+
 	while (split[i])
 		free(split[i++]);
 	free(split);
-	return 0;
+
+	return ret;
 }
 
-static int		parse_mac(int *arg_count, char *arg)
+static int		parse_manual(int *arg_count, char *arg)
 {
 	switch (*arg_count) {
 		case 0:
 			{
+				if (invalid_ip(arg))
+					return 1;
 				in_addr_t ip = inet_addr(arg);
 				uint8_t *ptr = (uint8_t*)&ip;
 				g_data.source_ip[0] = ptr[0];
@@ -46,7 +136,7 @@ static int		parse_mac(int *arg_count, char *arg)
 				g_data.source_ip[2] = ptr[2];
 				g_data.source_ip[3] = ptr[3];
 				(*arg_count)++;
-			break;
+				break;
 			}
 		case 1:
 			{
@@ -57,6 +147,8 @@ static int		parse_mac(int *arg_count, char *arg)
 			}
 		case 2:
 			{
+				if (invalid_ip(arg))
+					return 1;
 				in_addr_t ip = inet_addr(arg);
 				uint8_t *ptr = (uint8_t*)&ip;
 				g_data.target_ip[0] = ptr[0];
@@ -85,6 +177,8 @@ static int		parse_proxy(int *arg_count, char *arg)
 	switch (*arg_count) {
 		case 0:
 			{
+				if (invalid_ip(arg))
+					return 1;
 				in_addr_t ip = inet_addr(arg);
 				uint8_t *ptr = (uint8_t*)&ip;
 				g_data.source_ip[0] = ptr[0];
@@ -101,6 +195,8 @@ static int		parse_proxy(int *arg_count, char *arg)
 					(*arg_count)++;
 					break;
 				}
+				if (invalid_ip(arg))
+					return 1;
 				in_addr_t ip = inet_addr(arg);
 				uint8_t *ptr = (uint8_t*)&ip;
 				g_data.target_ip[0] = ptr[0];
@@ -198,10 +294,14 @@ int		parse_option_line(int ac, char **av)
 	int arg_count = 0;
 	for (int i = 1; i < ac; i++) {
 		if (!is_arg_an_opt(av, i, optstring, long_options)) {
-			if (g_data.opt & OPT_MANUAL)
-				parse_mac(&arg_count, av[i]);
-			else
-				parse_proxy(&arg_count, av[i]);
+			if (g_data.opt & OPT_MANUAL) {
+				if (parse_manual(&arg_count, av[i]))
+					return 1;
+			}
+			else {
+				if (parse_proxy(&arg_count, av[i]))
+					return 1;
+			}
 		}
 	}
 	if (!(g_data.opt & OPT_MANUAL)) {

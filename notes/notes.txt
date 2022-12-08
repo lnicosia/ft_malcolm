@@ -29,6 +29,12 @@ netcat 172.17.0.1 4444
 # TCP dump listen for netcat communication
 tcpdump -s 0 -U -n -w - -i eth0
 
+# Disable kernel redirect
+sysctl -w net.ipv4.ip_forward=0
+
+# Privileged
+sudo docker run --privileged -it --name malcolm5 jgoerzen/debian-base-minimal /bin/sh
+
 # Check arp cache
 $ ip neighbor
 
@@ -40,22 +46,27 @@ while true; do ip n | grep "66:66"; done
 
 # Docker needed installs
 apt-get update
-apt-get install tcpdump iputils-ping iproute2 net-tools arping curl wget zsh git -y
+apt-get install tcpdump iputils-ping iproute2 net-tools arping curl wget zsh git make gcc dsniff -y
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -
 
 # ==== TODO ====
-- Host resolution
+- NUMERIC OPTION ONCE DEFENSE DONE
+
+# ==== BONUSES ====
+- Persistency
+- Frequency
+- Duration
+- Passive forwarding
+- Restore after spoof
 - Verbose
+- Help menu
+- Auto ARP resolution for default mode
+- Interface selection
+- Awesome rotative insane art menu created by insane devs
+- Sniffing activity in another thread
 
 # ==== IDEAS ====
 (After validation)
-- Proxy mode by default
-- Spoof the whole network on broadcast -b --broadcast
-	- sudo ./ft_malcolm [source IP] -i [interface] --broadcast
-		- This command redirect all the traffic for the whole network to [source IP] on our machine
-		- -d --deny Service denial ? redirect all the packets to a dummy mac address
-- -m --manual: Subject's behavior with persistency mode activated
+- Finish active proxy
 - Packet analysis in another thread ?
 - WIFI support
-- Restore for manual persistent mode ?
-- Update version and help menu once done

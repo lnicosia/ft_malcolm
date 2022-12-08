@@ -6,7 +6,7 @@
 #    By: lumenthi <lumenthi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/12/22 14:06:43 by lumenthi          #+#    #+#              #
-#    Updated: 2022/12/05 10:59:03 by lumenthi         ###   ########.fr        #
+#    Updated: 2022/12/08 16:19:58 by lumenthi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = ft_malcolm
 
 CC = gcc
 FLAGS = -Wall -Werror -Wextra -g
-LDFLAGS =
+LDFLAGS = -lpthread
 
 GREEN = '\033[4;32m'
 RED = '\033[4;31m'
@@ -63,7 +63,7 @@ SRCS =	main.c \
 		proxy.c \
 		interface.c \
 		malcolm.c \
-		resolve_hostname.c \
+		analysis.c
 
 SOURCES = $(addprefix $(SRCDIR)/, $(SRCS))
 
@@ -157,4 +157,8 @@ run:
 	@ $(MAKE) all
 	@ sudo ./$(NAME) 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02
 
-.PHONY: all clean fclean re todo run
+copy:
+	@ $(MAKE) all
+	@ sudo docker cp ./$(NAME) malcolm5:/
+
+.PHONY: all clean fclean re todo run copy

@@ -52,6 +52,32 @@ int interface_mac(char *name, uint8_t *ret)
 	return 0;
 }
 
+int interface_brdcst(char *name, uint8_t *ret)
+{
+	int sockfd;
+	struct ifreq if_brd;
+	struct sockaddr_in sockaddr;
+
+	/* Open RAW socket to send on */
+	if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
+		perror("socket");
+		return -1;
+	}
+
+	ft_bzero(&if_brd, sizeof(struct ifreq));
+	ft_strncpy(if_brd.ifr_name, name, IFNAMSIZ - 1);
+	if (ioctl(sockfd, SIOCGIFBRDADDR, &if_brd) < 0) {
+		perror("SIOCGIFADDR");
+		close(sockfd);
+		return -1;
+	}
+	sockaddr = *(struct sockaddr_in *)&if_brd.ifr_addr;
+	ft_memcpy(ret, (uint8_t*)&sockaddr.sin_addr, IP_ADDR_LEN);
+
+	close(sockfd);
+	return 0;
+}
+
 int interface_ip(char *name, uint8_t *ret)
 {
 	int sockfd;

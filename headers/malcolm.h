@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <pthread.h>
 
 /* ASCII ART */
 #define DB_PATH "ascii/"
@@ -21,7 +22,7 @@
 #define ASCII1 DB_PATH ONE_FILENAME
 /* ******* */
 /* TODO: Set 2.ascii once the snd art finished */
-#define TWO_FILENAME "1.ascii"
+#define TWO_FILENAME "2.ascii"
 #define ASCII2 DB_PATH TWO_FILENAME
 
 #define IP_ADDR_LEN		4	/* in bytes */
@@ -91,6 +92,8 @@ typedef struct	s_data
 
 	int			sockfd;
 	char		*interface;
+	uint8_t		if_mac[ETH_ADDR_LEN];
+	uint8_t		if_ip[IP_ADDR_LEN];
 
 	uint32_t	frequency; /* In seconds */
 	uint32_t	duration; /* In seconds */
@@ -119,11 +122,15 @@ int			ft_malcolm(void);
 /* interface.c */
 int			interface_index(char *name);
 int			interface_mac(char *name, uint8_t *ret);
+int			interface_brdcst(char *name, uint8_t *ret);
 int			interface_ip(char *name, uint8_t *ret);
 
 /* help.c */
 void		print_help();
 void		print_usage(FILE *f);
+void		print_dusage(FILE *f);
+void		print_musage(FILE *f);
+void		print_busage(FILE *f);
 void		print_version(void);
 
 /* parse_option_line.c */
@@ -132,8 +139,7 @@ int			parse_option_line(int ac, char **av);
 /* proxy.c */
 int			ft_proxy(uint8_t *source_ip, uint8_t *target_ip);
 
-/* resolve_hostname.c */
-
-int			resolve_hostname(char *hostname, uint8_t *dest_ip);
+/* analysis.c */
+int			launch_thread(pthread_t *thread);
 
 #endif

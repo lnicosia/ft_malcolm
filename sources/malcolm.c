@@ -104,7 +104,7 @@ static int handle_packet(struct sockaddr_ll src_addr, char *buffer)
 		while (g_data.loop) {
 			if (send_back(src_addr, ethernet, arp) != 0)
 				break;
-			if (!(g_data.opt & OPT_PERSISTENT) && !(g_data.opt & OPT_PROXY)) {
+			if (g_data.opt & OPT_NO_PERSISTENCY) {
 				printf("Spoofed the target, exiting\n");
 				break;
 			}
@@ -150,16 +150,19 @@ static void show_resume()
 	printf("\n");
 
 	/* Options */
-	printf("Mode: %s\n", g_data.opt & OPT_PROXY ? "PROXY":"SPOOFING");
-	printf("Persistent: %s\n", g_data.opt & OPT_PERSISTENT ? "YES":"NO");
+	printf("Mode: %s\n", g_data.opt & OPT_MANUAL ? "MANUAL":"AUTO");
+	printf("Persistent: %s\n", g_data.opt & OPT_NO_PERSISTENCY ? "FALSE":"TRUE");
+	printf("Sniff: %s\n", g_data.opt & OPT_SNIFF ? "TRUE":"FALSE");
 	printf("Delay: ");
-	g_data.opt & OPT_PERSISTENT ? printf("%d second(s)\n",g_data.frequency):printf("NONE\n");
+	g_data.opt & OPT_NO_PERSISTENCY ? printf("NONE\n"):printf("%d second(s)\n",g_data.frequency);
 	printf("Duration: ");
-	if (g_data.opt & OPT_PERSISTENT)
+	if (!(g_data.opt & OPT_NO_PERSISTENCY))
 		g_data.opt & OPT_DURATION ? printf("%d second(s)\n",g_data.duration):printf("UNDEFINED\n");
 	else
 		printf("NONE (only when persistency is active)\n");
-	printf("Interface: %s\n", g_data.opt & OPT_INTERFACE ? g_data.interface:"NONE");
+	printf("Broadcast: %s\n", g_data.opt & OPT_BROADCAST ? "TRUE":"FALSE");
+	printf("DOS: %s\n", g_data.opt & OPT_DENY ? "TRUE":"FALSE");
+	printf("Interface: %s\n", g_data.opt & OPT_MANUAL ? "NONE":g_data.interface);
 	printf("Numeric mode: %s\n", g_data.opt & OPT_NUMERIC ? "TRUE":"FALSE");
 	printf("Verbose: %s\n", g_data.opt & OPT_VERBOSE ? "TRUE":"FALSE");
 	printf("===================\n");
@@ -187,10 +190,11 @@ int ft_malcolm(void)
 	/* Initializing signal handler */
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Initializing signals handler\n");
+
 	signal(SIGINT, inthandler);
 	signal(SIGALRM, inthandler);
 
-	if (g_data.opt & OPT_PROXY)
+	if (!(g_data.opt & OPT_MANUAL))
 		ft_proxy(g_data.source_ip, g_data.target_ip);
 	else {
 		printf("Sniffing ARP packets, press CTRL+C to exit...\n");
@@ -204,6 +208,7 @@ int ft_malcolm(void)
 
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Closing sockfd\n");
+
 	close(g_data.sockfd);
 	return 0;
 }

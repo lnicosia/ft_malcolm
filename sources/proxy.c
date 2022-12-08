@@ -83,7 +83,10 @@ static int spoof(uint8_t *tip, uint8_t *tmac, uint8_t *sip, uint8_t *smac,
 		printf("[*] Sent %d byte(s) to ", ret);
 		print_mac(packet.arp.tha);
 		fflush(stdout);
-		printf("\n");
+		printf(" (");
+		print_mac(packet.arp.sha);
+		fflush(stdout);
+		printf(")\n");
 		fflush(stdout);
 	}
 
@@ -233,7 +236,10 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 			return 1;
 	}
 
-	dprintf(STDOUT_FILENO, "Proxying between ");
+	if (g_data.opt & OPT_DENY)
+		dprintf(STDOUT_FILENO, "Denying between ");
+	else
+		dprintf(STDOUT_FILENO, "Proxying between ");
 	print_ip(STDOUT_FILENO, g_data.source_ip);
 	dprintf(STDOUT_FILENO, " and ");
 	print_ip(STDOUT_FILENO, g_data.target_ip);
@@ -245,6 +251,11 @@ int ft_proxy(uint8_t *source_ip, uint8_t *target_ip)
 
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Starting the spoof process\n");
+
+	if (g_data.opt & OPT_DENY) {
+		uint8_t deny[ETH_ADDR_LEN] = {0xde, 0xad, 0x00, 0x00, 0xde, 0xad};
+		ft_memcpy(if_mac, deny, ETH_ADDR_LEN);
+	}
 
 	/* LISTEN THREAD INIT */
 	if (g_data.opt & OPT_SNIFF)

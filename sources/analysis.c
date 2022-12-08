@@ -258,7 +258,8 @@ static int sniff_traffic(void *osef)
 					//	print_udp(layer4, ip);
 					(void)print_udp;
 
-					if (filter_out(g_data.source_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN) &&
+					if (!(g_data.opt & OPT_DENY) &&
+						filter_out(g_data.source_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN) &&
 						filter_out(g_data.if_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN))
 					{
 						transmit_packet(ip, ret - sizeof(struct ethernet_hdr));
@@ -268,8 +269,6 @@ static int sniff_traffic(void *osef)
 			ft_bzero(buffer, len);
 		}
 	}
-
-	(void)print_icmp;
 
 	if (g_data.opt & OPT_VERBOSE)
 		printf("[*] Closing sniffer's socket\n");

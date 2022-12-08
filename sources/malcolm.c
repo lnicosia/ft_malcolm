@@ -161,6 +161,7 @@ static void show_resume()
 	else
 		printf("NONE (only when persistency is active)\n");
 	printf("Broadcast: %s\n", g_data.opt & OPT_BROADCAST ? "TRUE":"FALSE");
+	printf("DOS: %s\n", g_data.opt & OPT_DENY ? "TRUE":"FALSE");
 	printf("Interface: %s\n", g_data.opt & OPT_MANUAL ? "NONE":g_data.interface);
 	printf("Numeric mode: %s\n", g_data.opt & OPT_NUMERIC ? "TRUE":"FALSE");
 	printf("Verbose: %s\n", g_data.opt & OPT_VERBOSE ? "TRUE":"FALSE");

@@ -175,6 +175,7 @@ int		parse_option_line(int ac, char **av)
 		{"broadcast",		0,					0, 'b'},
 		{"duration",		required_argument,	0, 'd'},
 		{"frequency",		required_argument,	0, 'f'},
+		{"deny",			0,					0, 0},
 		{"no-persistency",	0,					0, 0},
 		{0,					0,					0, 0}
 	};
@@ -184,6 +185,8 @@ int		parse_option_line(int ac, char **av)
 			case 0:
 				if (ft_strequ(long_options[option_index].name, "no-persistency"))
 					 g_data.opt |= OPT_NO_PERSISTENCY;
+				else if (ft_strequ(long_options[option_index].name, "deny"))
+					g_data.opt |= OPT_DENY;
 				break;
 			case 'h':
 				print_help();
@@ -256,6 +259,12 @@ int		parse_option_line(int ac, char **av)
 	}
 	else {
 		if (arg_count != 4) {
+			print_musage(stderr);
+			return 1;
+		}
+		if (g_data.opt & OPT_DENY) {
+			fprintf(stderr,
+				"--deny is not available when manual mode is selected, QUITTING!\n");
 			print_musage(stderr);
 			return 1;
 		}

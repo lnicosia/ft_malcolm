@@ -236,27 +236,27 @@ int		parse_option_line(int ac, char **av)
 {
 	int	opt, option_index = 0;
 	char		*optarg = NULL;
-	const char	*optstring = "hVvsmbnd:f:";
+	const char	*optstring = "hVvspbnd:f:";
 	static struct option long_options[] = {
 		{"help",			0,					0, 'h'},
 		{"version",			0,					0, 'V'},
 		{"verbose",			0,					0, 'v'},
 		{"numeric",			0,					0, 'n'},
-		{"manual",			0,					0, 'm'},
+		{"proxy",			0,					0, 'p'},
 		{"sniff",			0,					0, 's'},
 		{"broadcast",		0,					0, 'b'},
 		{"duration",		required_argument,	0, 'd'},
 		{"frequency",		required_argument,	0, 'f'},
 		{"deny",			0,					0, 0},
-		{"no-persistency",	0,					0, 0},
+		{"persistency",		0,					0, 0},
 		{0,					0,					0, 0}
 	};
 	while ((opt = ft_getopt_long(ac, av, optstring, &optarg,
 					long_options, &option_index)) != -1) {
 		switch (opt) {
 			case 0:
-				if (ft_strequ(long_options[option_index].name, "no-persistency"))
-					 g_data.opt |= OPT_NO_PERSISTENCY;
+				if (ft_strequ(long_options[option_index].name, "persistency"))
+					 g_data.opt &= ~OPT_NO_PERSISTENCY;
 				else if (ft_strequ(long_options[option_index].name, "deny"))
 					g_data.opt |= OPT_DENY;
 				break;
@@ -266,8 +266,9 @@ int		parse_option_line(int ac, char **av)
 			case 'V':
 				print_version();
 				return 1;
-			case 'm':
-				g_data.opt |= OPT_MANUAL;
+			case 'p':
+				g_data.opt &= ~OPT_MANUAL;
+				g_data.opt &= ~OPT_NO_PERSISTENCY;
 				break;
 			case 'b':
 				g_data.opt |= OPT_BROADCAST;

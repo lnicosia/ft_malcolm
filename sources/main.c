@@ -12,6 +12,8 @@ int main(int ac, char **av)
 	g_data.loop = 1; /* The loop is started by default */
 	g_data.wait_loop_len = 4;
 	g_data.wait_loop = "/|\\|";
+	g_data.opt |= OPT_MANUAL;
+	g_data.opt |= OPT_NO_PERSISTENCY;
 
 	if (parse_option_line(ac, av))
 		return -1;

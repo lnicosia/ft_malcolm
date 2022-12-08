@@ -257,13 +257,13 @@ static int sniff_traffic(void *osef)
 					// else if (ip->protocol == IPPROTO_UDP)
 					//	print_udp(layer4, ip);
 					(void)print_udp;
-
-					if (!(g_data.opt & OPT_DENY) &&
+					(void)transmit_packet;
+					/*if (!(g_data.opt & OPT_DENY) &&
 						filter_out(g_data.source_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN) &&
 						filter_out(g_data.if_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN))
 					{
 						transmit_packet(ip, ret - sizeof(struct ethernet_hdr));
-					}
+					}*/
 				}
 			}
 			ft_bzero(buffer, len);

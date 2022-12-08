@@ -243,7 +243,7 @@ int		parse_option_line(int ac, char **av)
 	}
 	if (!(g_data.opt & OPT_MANUAL)) {
 		if (!(g_data.opt & OPT_BROADCAST) && arg_count != 3) {
-			print_usage(stderr);
+			print_dusage(stderr);
 			return 1;
 		}
 		else if (g_data.opt & OPT_BROADCAST && arg_count != 2) {
@@ -253,7 +253,7 @@ int		parse_option_line(int ac, char **av)
 		if (g_data.opt & OPT_NO_PERSISTENCY) {
 			fprintf(stderr,
 				"--no-persistency is only available when manual mode is selected, QUITTING!\n");
-			print_usage(stderr);
+			print_dusage(stderr);
 			return 1;
 		}
 	}

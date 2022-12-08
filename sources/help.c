@@ -37,10 +37,10 @@ void		print_version(void)
 	);
 }
 
-void		print_usage(FILE *f)
+void		print_dusage(FILE *f)
 {
 	fprintf(f,
-		"USAGE:\n"
+		"DEFAULT USAGE:\n"
 		"  ft_malcolm [Source IP] [Target IP] [Interface] [Options]\n"
 	);
 }
@@ -49,7 +49,7 @@ void		print_musage(FILE *f)
 {
 	fprintf(f,
 		"MANUAL USAGE:\n"
-		"  ft_malcolm [Source IP] [Source MAC] [Target IP] [Target MAC] [Options]\n"
+		"  ft_malcolm --manual [Source IP] [Source MAC] [Target IP] [Target MAC] [Options]\n"
 	);
 }
 
@@ -57,8 +57,15 @@ void		print_busage(FILE *f)
 {
 	fprintf(f,
 		"BROADCAST USAGE:\n"
-		"  ft_malcolm [Source IP] [Interface] [Options]\n"
+		"  ft_malcolm --broadcast [Source IP] [Interface] [Options]\n"
 	);
+}
+
+void		print_usage(FILE *f)
+{
+	print_dusage(f);
+	print_busage(f);
+	print_musage(f);
 }
 
 static void examples()
@@ -95,28 +102,46 @@ static void formatting()
 	);
 }
 
-static void proxy()
+static void modes()
 {
-	printf("PROXY:\n"
-			"  -P --proxy [Source IP] [Target IP] -i [Interface]: Monitor/Proxy the communication between source and target host\n"
-			"  Proxy mode will send ARP requests to get MAC addresses for both hosts\n"
-			"  You must only give IPv4 addresses when this option is active\n"
-			"  Specifying an interface is mandatory for this mode\n"
-			"  Select interface with the -i --interface [Interface] option\n"
-			"  All the communication between those 2 hosts will pass through your machine\n"
-			"  Note that the -p --persistent option will be ignored when selecting this mode since persistency is active by default when proxying\n"
-			"  At the end of the proxy process, ARP cache of targets will be reset so it will work normally again\n"
+	printf("MODES:\n"
+			"  DEFAULT:\n"
+			"    ft_malcolm [Source IP] [Target IP] [Interface] [Options]: Monitor/Proxy the communication between source and target host\n"
+			"    Default mode will send ARP requests to get MAC addresses for both hosts\n"
+			"    Both hosts will be spoofed persistently to redirect packets to us\n"
+			"    You must only give IPv4 addresses when this option is active\n"
+			"    Specifying an interface is mandatory for this mode\n"
+			"    Note that persistency is always active (you can't specify --no-persistency)\n"
+			"    At the end of the process, ARP cache of targets will be reset so it will work normally again\n"
+			"    Be sure to enable kernel IP forwarding to allow packets redistribution: sysctl -w net.ipv4.ip_forward=1\n"
+			"      EXEMPLE: ./ft_malcolm 172.17.0.1 172.17.0.3 eth0\n"
+			"  BROADCAST:\n"
+			"    ft_malcolm --broadcast [Source IP] [Interface] [Options]: Proxy the whole network\n"
+			"    Works like the default's mode but spoof all machines within the network\n"
+			"    You must only give the source IP since the target will be the broadcast\n"
+			"    This mode will own the addresses of the broadcast address automatically\n"
+			"    At the end of the process, ARP cache of the whole network will be reset so it will work normally again\n"
+			"      EXEMPLE: ./ft_malcolm 172.17.0.1 eth0 -b\n"
+			"  MANUAL:\n"
+			"    ft_malcolm --manual [Source IP] [Source MAC] [Target IP] [Target MAC] [Options]\n"
+			"    In this mode, malcolm won't send ARP requests to resolve IPs\n"
+			"    You have control over MAC addresses by specifying them\n"
+			"    When manual mode is selected, malcolm will wait for an ARP request to start the spoof process\n"
+			"    Selecting an interface is not necessary, the interface will be set to the good one automatically\n"
+			"    Malcolm won't spoof both hosts but only the target\n"
+			"    By default, manual mode will spoof the target consistently, change this behavior with --no-persistency\n"
+			"    EXEMPLE: ./ft_malcolm -m 172.17.0.1 66:66:66:66:66:66 172.17.0.2 02:42:ac:11:00:02\n"
 	);
 }
 
 static void persistency()
 {
 	printf("PERSISTENCY:\n"
-			"  -p --persistent: Keep the spoofing alive\n"
-			"  By default, the program is only responding to ARP request once\n"
-			"  This option allows a persistent spoofing by resending ARP requests every 2 seconds (by default)\n"
+			"  --no-persistency: Do not keep the spoofing alive\n"
+			"  By default, malcolm keeps the spoofing alive by resending ARP requests every 2 seconds (2 seconds by default)\n"
 			"  The request rate can be changed with the option -f --frequency [time (in second)]\n"
-			"  Note that once the project will be validated, this option will be the default behavior\n"
+			"  The no persistency option denies this behavior by only responding to ARP request once\n"
+			"  Note that the --no-persistency option is only available with the -m --manual mode\n"
 	);
 }
 
@@ -124,7 +149,7 @@ static void duration()
 {
 	printf("DURATION:\n"
 			"  -d --duration [time (in seconds)]: Duration of the spoofing process\n"
-			"  Note that his option will be taken in consideration only when the -P --proxy mode or -p --persistent mode is selected\n"
+			"  Note that this option will be taken in consideration only when the persistency is enabled\n"
 	);
 }
 
@@ -151,9 +176,9 @@ void		print_help()
 	source_specification();
 	target_specification();
 	formatting();
+	modes();
 	persistency();
 	duration();
-	proxy();
 	misc();
 	examples();
 

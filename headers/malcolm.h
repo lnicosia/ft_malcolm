@@ -128,6 +128,7 @@ int			interface_ip(char *name, uint8_t *ret);
 /* help.c */
 void		print_help();
 void		print_usage(FILE *f);
+void		print_dusage(FILE *f);
 void		print_musage(FILE *f);
 void		print_busage(FILE *f);
 void		print_version(void);

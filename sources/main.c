@@ -3,7 +3,6 @@
 
 t_data	g_data;
 
-/* TODO: Check allowed functions and fd leaks */
 int main(int ac, char **av)
 {
 	/* g_data default values */
@@ -24,7 +23,6 @@ int main(int ac, char **av)
 		return 1;
 	}
 
-	/* TODO: Must handle error cases for arguments (emptys, etc...) */
 	ft_malcolm();
 	return 0;
 }

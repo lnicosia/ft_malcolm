@@ -23,7 +23,6 @@ static int handle_response(uint8_t *ip, char *buffer, uint8_t *received_mac)
 		dprintf(STDOUT_FILENO, " expecting ");
 		print_ip(STDOUT_FILENO, ip);
 		dprintf(STDOUT_FILENO, "\n");
-		/* debug_packet(ethernet, arp); */
 	}
 
 	if (type == ETH_P_ARP && opcode == ARP_REPLY &&
@@ -99,7 +98,6 @@ static int arp_request(uint8_t *tip, struct sockaddr_ll sockaddr,
 	socklen_t addr_len = sizeof(struct sockaddr_ll);
 	struct arp_packet packet = {0};
 	int ret;
-	/* TODO: Parse dynamically the broadcast MAC address ? */
 	/* We assume the broadcast is always ff:ff:ff:ff:ff:ff */
 	uint8_t brdcst[ETH_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 	int len = sizeof(struct ethernet_hdr) + sizeof(struct arp_hdr);

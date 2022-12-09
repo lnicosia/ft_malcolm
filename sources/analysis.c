@@ -66,7 +66,6 @@ static void print_tcp(struct tcphdr *tcp, struct iphdr *ip, ssize_t payload_size
 
 static int sniff_traffic(void *osef)
 {
-	/* TODO: Verbose */
 	(void)osef;
 	int l2fd;
 	struct ethernet_hdr *ethernet;
@@ -106,14 +105,6 @@ static int sniff_traffic(void *osef)
 						print_tcp(layer4, ip,
 						ret - (sizeof(struct ethernet_hdr) + sizeof(struct iphdr)
 						+ sizeof(struct tcphdr)));
-					// else if (ip->protocol == IPPROTO_UDP)
-					//	print_udp(layer4, ip);
-					/*if (!(g_data.opt & OPT_DENY) &&
-						filter_out(g_data.source_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN) &&
-						filter_out(g_data.if_mac, (uint8_t*)&ethernet->smac, ETH_ADDR_LEN))
-					{
-						transmit_packet(ip, ret - sizeof(struct ethernet_hdr));
-					}*/
 				}
 			}
 			ft_bzero(buffer, len);

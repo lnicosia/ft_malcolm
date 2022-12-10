@@ -1,5 +1,9 @@
 # Malcolm [![Generic badge](https://img.shields.io/badge/version-0.8.2-green.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/distro-linux-green.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/language-c-orange.svg)](https://shields.io/)
-![bs](docs/main.gif)  
+
+<p align="center">
+  <img src="docs/main.png">
+</p>  
+
 Perform a __man in the middle attack__ in __C__ without the help of any network library.
 
 ## Summary
